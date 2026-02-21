@@ -16,6 +16,7 @@ import { Sparkles, Copy, Check, ArrowLeft, User, Shirt, MapPin, Move, Camera, Sm
 import OptionGrid from '@/components/builder/OptionGrid';
 import PromptPreview from '@/components/builder/PromptPreview';
 import EditTab from '@/components/builder/EditTab';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const iconMap: Record<string, React.ReactNode> = {
   User: <User className="h-4 w-4" />,
@@ -130,7 +131,8 @@ const BuilderPage = () => {
           <Sparkles className="h-5 w-5 text-accent-foreground" />
           <span className="font-bold font-display text-foreground">Avatar Creator</span>
         </div>
-        <div className="flex items-center gap-1 rounded-lg bg-secondary p-1">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 rounded-lg bg-secondary p-1">
           <button
             onClick={() => setActiveTab('builder')}
             className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
@@ -151,6 +153,8 @@ const BuilderPage = () => {
           >
             Editar Existente
           </button>
+          </div>
+          <ThemeToggle />
         </div>
       </header>
 
