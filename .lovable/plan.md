@@ -1,74 +1,118 @@
 
+## Refatoracao para Arquitetura Multi-Page com Sidebar
 
-## Plano de Implementacao - 3 Mudancas
+### Resumo
 
-### 1. Adicionar Aspect Ratio ao Builder
-
-Novo bloco "Proporcao da Imagem" no builder com opcoes de aspect ratio comuns para geradores de imagem:
-
-- **Opcoes:** 1:1 (Quadrado), 4:5 (Instagram Retrato), 9:16 (Stories/Reels), 16:9 (Widescreen), 3:4 (Retrato Classico), 2:3 (Pinterest)
-- Cada opcao tera um `promptValue` em ingles (ex: "1:1 square aspect ratio", "9:16 vertical portrait aspect ratio")
-- Sera adicionado como bloco no accordion, com icone `RatioIcon` (ou similar do Lucide)
-
-**Arquivos afetados:**
-- `src/lib/avatar-config.ts` -- adicionar opcoes de aspect ratio, campo `aspectRatio` no `AvatarState` e `defaultAvatarState`
-- `src/stores/avatar-store.ts` -- o campo ja sera incluso automaticamente pelo spread do state
-- `src/lib/prompt-engine.ts` -- incluir aspect ratio no prompt gerado
-- `src/pages/BuilderPage.tsx` -- adicionar icone ao `iconMap`
+Reorganizar a aplicacao em 4 paginas com navegacao lateral fixa, mantendo todas as funcionalidades existentes e melhorando a experiencia visual com mais espacamento e hierarquia.
 
 ---
 
-### 2. Melhorar o Estilo do Prompt Gerado
+### Estrutura de Rotas
 
-O prompt atual gera frases curtas separadas por pontos. O exemplo fornecido pelo usuario e um paragrafo continuo, descritivo, com linguagem editorial e detalhes tecnicos de pele/camera muito mais ricos.
-
-**Mudancas no `prompt-engine.ts`:**
-- Reformular `generatePrompt` para gerar um unico paragrafo fluido em vez de frases separadas por ". "
-- Usar virgulas e ponto-e-virgula como separadores (estilo editorial)
-- Adicionar descritores mais ricos e tecnicos nos `promptValue` de cada opcao (pores visiveis, micro-imperfeicoes, zero suavizacao, foco nos olhos, etc.)
-- Melhorar os finishing modifiers para incluir: "skin rendered hyper-realistically with visible pores, micro-imperfections, natural redness, and zero smoothing; razor-sharp focus on the eyes, natural color balance, no HDR, no over-sharpening, no stylization; fully photorealistic, authentic, and human, with no text, no logos, no branding, no CGI look, and no AI artifacts"
-- Mudar o join de `. ` para `, ` e reestruturar as partes como clausulas dentro de um paragrafo coeso
-
----
-
-### 3. Dark Mode por Padrao
-
-O projeto ja tem tokens de dark mode definidos no CSS (`:root` e `.dark`). Basta:
-
-- Alterar `index.html` para adicionar classe `dark` ao `<html>`
-- Ou configurar `next-themes` (ja instalado) para default `dark`
-- Verificar que todas as paginas usam os tokens semanticos (ja usam: `bg-background`, `text-foreground`, etc.)
-
-**Arquivos afetados:**
-- `src/App.tsx` ou `index.html` -- aplicar tema dark como padrao
-- Possivelmente `src/main.tsx` se usar ThemeProvider
-
----
-
-### Detalhes Tecnicos
-
-**avatar-config.ts:**
-```
-// Nova lista de aspect ratios
-const aspectRatios: OptionItem[] = [
-  { id: '1-1', label: '1:1 Quadrado', promptValue: '1:1 square aspect ratio' },
-  { id: '4-5', label: '4:5 Instagram', promptValue: '4:5 vertical aspect ratio' },
-  { id: '9-16', label: '9:16 Stories', promptValue: '9:16 vertical portrait aspect ratio' },
-  { id: '16-9', label: '16:9 Widescreen', promptValue: '16:9 widescreen horizontal aspect ratio' },
-  { id: '3-4', label: '3:4 Retrato', promptValue: '3:4 classic portrait aspect ratio' },
-  { id: '2-3', label: '2:3 Pinterest', promptValue: '2:3 tall portrait aspect ratio' },
-];
-
-// Novo bloco no getBuilderBlocks
-{ id: 'aspectRatio', title: 'Proporcao da Imagem', icon: 'Ratio', ... }
-
-// AvatarState ganha: aspectRatio: string
-// defaultAvatarState ganha: aspectRatio: ''
+```text
+/              -> Dashboard (novo)
+/avatar        -> Criar Avatar Realista (builder atual reorganizado)
+/avatar/edit   -> Editar Avatar Existente (tab atual vira sub-rota)
+/roteiros      -> Gerar Roteiros UGC (novo)
+/configuracoes -> Configuracoes (placeholder)
 ```
 
-**prompt-engine.ts:**
-- Reestruturar para gerar prompt no estilo: "Ultra-photorealistic professional portrait, [framing] depicting [subject] with [appearance details]; [clothing]; expression is [expression], [pose]; environment is [environment]; lighting is [lighting]; skin rendered hyper-realistically with visible pores...; camera look is [photoStyle]; [aspect ratio]; fully photorealistic..."
+---
 
-**Dark mode:**
-- Configurar ThemeProvider do `next-themes` com `defaultTheme="dark"` ou adicionar `class="dark"` ao HTML
+### Novos Arquivos
 
+1. **`src/components/layout/AppSidebar.tsx`**
+   - Sidebar fixa a esquerda com icones + labels
+   - Links: Dashboard, Criar Avatar, Roteiros UGC, Configuracoes
+   - Destaque visual no item ativo (usando `useLocation`)
+   - Logo/brand no topo
+   - ThemeToggle no rodape da sidebar
+   - Responsivo: colapsavel em mobile (hamburger menu)
+
+2. **`src/components/layout/AppLayout.tsx`**
+   - Layout wrapper com sidebar + area de conteudo principal
+   - Usa `<Outlet />` do react-router para renderizar paginas filhas
+   - Transicoes suaves entre paginas (CSS transitions com fade/slide)
+
+3. **`src/pages/Dashboard.tsx`**
+   - 4 cards grandes centralizados em grid 2x2:
+     - "Criar Avatar Realista" (icone User + Sparkles) -> navega para /avatar
+     - "Gerar Roteiros UGC" (icone FileText) -> navega para /roteiros
+     - "Producao de Video" (icone Video) -> placeholder/coming soon
+     - "Configuracoes" (icone Settings) -> navega para /configuracoes
+   - Cards com hover elevado, icones grandes, descricao curta
+   - Layout minimalista e premium
+
+4. **`src/pages/AvatarBuilderPage.tsx`**
+   - Refatoracao do `BuilderPage.tsx` atual
+   - Remove header proprio (sidebar cuida da navegacao)
+   - Mantem selecao de genero inline (se genero nao selecionado, mostra cards de selecao)
+   - Layout 2 colunas:
+     - Esquerda: accordions de configuracao (como esta)
+     - Direita: area de preview maior com prompt gerado + secao "Referencias Visuais" abaixo
+   - Secao "Referencias Visuais": area com placeholders para upload/exibicao de imagens de inspiracao
+   - Toggle "Novo Avatar" / "Editar Existente" vira sub-navegacao interna ou rotas separadas
+
+5. **`src/pages/ScriptGeneratorPage.tsx`**
+   - Pagina nova para geracao de roteiros UGC
+   - Formulario com inputs:
+     - Produto (text input)
+     - Nicho (text input ou select)
+     - Publico-alvo (text input)
+     - Tom do Avatar (select: profissional, casual, engraçado, etc.)
+     - Quantidade de videos (number input / slider 1-10)
+   - Botao central grande "Gerar Roteiros"
+   - Area de resultados: cards individuais por roteiro com conteudo em formato texto
+   - Contador de caracteres em cada card
+   - Nota: geracao sera placeholder por enquanto (sem IA conectada), mostrando estrutura de output
+
+6. **`src/pages/SettingsPage.tsx`**
+   - Pagina placeholder com titulo e descricao
+   - Secoes futuras: Perfil, Preferencias, Plano
+
+---
+
+### Arquivos Modificados
+
+1. **`src/App.tsx`**
+   - Reestruturar rotas com layout aninhado:
+     ```text
+     <Route element={<AppLayout />}>
+       <Route path="/" element={<Dashboard />} />
+       <Route path="/avatar" element={<AvatarBuilderPage />} />
+       <Route path="/roteiros" element={<ScriptGeneratorPage />} />
+       <Route path="/configuracoes" element={<SettingsPage />} />
+     </Route>
+     ```
+
+2. **`src/pages/BuilderPage.tsx`**
+   - Renomear/refatorar para `AvatarBuilderPage.tsx`
+   - Remover header duplicado (sidebar lida com navegacao)
+   - Manter toda logica de builder intacta
+   - Integrar selecao de genero como passo inicial inline
+   - Adicionar secao "Referencias Visuais" na coluna direita abaixo do prompt preview
+
+3. **`src/pages/Index.tsx`**
+   - Sera substituido pelo Dashboard
+   - Selecao de genero movida para dentro da pagina de avatar
+
+---
+
+### Detalhes da Sidebar
+
+- Largura: ~240px em desktop, colapsavel a icones (~64px) em tablet, drawer em mobile
+- Icones usados (lucide-react): `LayoutDashboard`, `UserCircle`, `FileText`, `Video`, `Settings`
+- Fundo: usa tokens `sidebar-background`, `sidebar-foreground` ja definidos no CSS
+- Item ativo: destaque com `sidebar-accent` + borda lateral ou fundo diferenciado
+- Separador visual entre grupos de itens
+
+### Design Visual
+
+- Cards do dashboard: `rounded-2xl`, padding generoso (p-8 a p-10), sombra `shadow-card` com hover `shadow-card-hover` e `hover:-translate-y-1`
+- Mais espacamento geral: `gap-6` entre blocos, padding `p-6` a `p-8` nas areas de conteudo
+- Manter identidade escura atual com tokens semanticos
+- Transicoes entre paginas: CSS `animate-in fade-in` do tailwindcss-animate (ja instalado)
+
+### Nota sobre Framer Motion
+
+O projeto nao tem Framer Motion instalado. Transicoes serao feitas com `tailwindcss-animate` (ja disponivel) usando classes como `animate-in`, `fade-in`, `slide-in-from-left` para manter o bundle leve. Se o resultado nao for satisfatorio, Framer Motion pode ser adicionado depois.
