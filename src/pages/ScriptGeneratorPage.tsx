@@ -16,10 +16,18 @@ const toneOptions = [
   { id: 'inspirador', label: 'Inspirador' },
 ];
 
-const rangeOptions = [
-  { id: 'parado', label: 'Parado', action: 'Gesticula levemente com as mãos enquanto fala, olha direto para a câmera com expressão natural' },
-  { id: 'produto', label: 'Com produto', action: 'Segura o produto na altura do peito, gesticula com uma mão enquanto apresenta com a outra' },
-  { id: 'pessoa', label: 'Com pessoa', action: 'Gesticula em direção à pessoa ao lado enquanto fala, alterna o olhar entre a câmera e o interlocutor' },
+const actionPool = [
+  'Passa o produto de uma mão para a outra enquanto fala naturalmente',
+  'Levanta o frasco brevemente na direção da câmera',
+  'Abre a palma da mão enquanto explica o ponto',
+  'Gira levemente o frasco enquanto fala',
+  'Encosta o frasco de leve na bochecha e sorri',
+  'Ajusta o cabelo com a mão livre enquanto continua falando',
+  'Inclina minimamente o corpo para frente ao enfatizar',
+  'Olha para baixo por um instante e volta para a câmera',
+  'Segura o produto no colo e gesticula com as duas mãos',
+  'Levanta a sobrancelha ao mencionar um benefício',
+  'Ri de leve e balança o produto de forma natural',
 ];
 
 interface UGCPrompt {
@@ -44,160 +52,234 @@ const scenePool = [
   'Café ou restaurante com ambiente movimentado ao fundo desfocado, luz ambiente quente',
 ];
 
-// Dialogue groups: each group is a sequential narrative (part 1 introduces, 2 develops, 3 deepens, 4 concludes, 5 wraps)
-const dialogueGroups: Record<string, string[][]> = {
-  profissional: [
-    [
-      'Depois de testar diversas alternativas no mercado, posso afirmar com segurança que este produto entrega resultados consistentes e mensuráveis',
-      'A diferença que percebi nos primeiros dias foi significativa, os dados comprovam uma eficácia que supera qualquer expectativa inicial',
-      'Os profissionais da área já reconhecem como referência e os resultados falam por si, sem necessidade de exagero algum',
-      'Em termos de custo-benefício, a performance entregue justifica cada centavo investido e os resultados são realmente duradouros',
-      'Recomendo sem hesitação para quem busca resultado real, a qualidade dos ingredientes faz toda a diferença no longo prazo',
+// Dialogues organized by narrative role per tone
+const dialoguesByRole: Record<string, { intro: string[]; dev: string[]; cta: string[] }> = {
+  profissional: {
+    intro: [
+      'Tava revisando minha rotina de cuidados essa semana e percebi como esse produto mudou meu padrão de resultados nos últimos meses',
+      'Quero compartilhar uma análise honesta sobre um produto que incorporei na rotina e que trouxe dados bem consistentes até agora',
+      'Hoje quero falar sobre algo que testei metodicamente por semanas e que realmente entregou o que a formulação prometia entregar',
+      'Resolvi documentar minha experiência porque os resultados foram relevantes o suficiente pra merecer uma avaliação detalhada e séria',
     ],
-    [
-      'Analisei criteriosamente cada componente e a formulação é realmente superior ao que encontramos no mercado atualmente disponível',
-      'Os resultados aparecem de forma gradual porém consistente, exatamente como prometido pela marca em seus estudos clínicos publicados',
-      'Minha equipe inteira adotou este produto após ver meus resultados pessoais nas primeiras semanas de uso contínuo e regular',
-      'O diferencial está nos detalhes técnicos que poucos percebem, a tecnologia empregada garante uma experiência verdadeiramente superior',
-      'Já avaliei centenas de produtos similares na carreira e este se destaca pela formulação inteligente e resultados sem ajustes',
+    dev: [
+      'A textura absorve em segundos sem deixar resíduo, o que facilita muito pra quem tem rotina apertada pela manhã toda',
+      'Percebi firmeza real na região do contorno após três semanas de uso contínuo, sem irritação ou sensibilidade aparente nenhuma',
+      'O diferencial técnico está na concentração ativa que trabalha em camadas, os resultados não são superficiais como outros produtos',
+      'Nos dias de estresse a pele manteve estabilidade, algo que não consegui com nenhuma outra formulação que testei antes',
+      'A hidratação dura o dia inteiro sem reaplicação, testei em clima seco e úmido e manteve performance igual nos dois',
+      'O acabamento é imperceptível na pele, dá pra usar sob maquiagem sem nenhum conflito de textura ou acúmulo visível',
+      'Depois de um mês a uniformidade do tom melhorou visivelmente, não é milagre mas é progresso real e mensurável',
+      'A entrega é gradual e respeitosa com a barreira cutânea, o que mostra inteligência na formulação e não agressividade',
     ],
-  ],
-  casual: [
-    [
-      'Gente, eu não acreditei quando vi o resultado, tipo uso há duas semanas e já tô vendo diferença real sem frescura nenhuma',
-      'Tava mega cética no começo, confesso, mas aí comecei a usar e caramba o negócio entrega o que promete de verdade mesmo',
-      'Olha, vou ser sincera com vocês, testei um monte de coisa parecida e nada chegou perto disso aqui, a diferença é gritante',
-      'Não é publi não, tô falando sério, comprei com meu dinheiro e amei tanto que precisei vir contar pra vocês agora',
-      'Se alguém me perguntasse qual produto indicar sem pensar duas vezes seria esse aqui, praticidade resultado visível e preço justo',
+    cta: [
+      'Deixei o link aqui embaixo pra quem quiser conferir os detalhes da formulação e testar por conta própria com calma',
+      'Se quiser experimentar também, o link tá aqui embaixo, vale a pena analisar os ingredientes antes de decidir comprar',
+      'O link tá logo abaixo pra você dar uma olhada, recomendo pra quem busca resultado consistente e sem exagero nenhum',
+      'Vou deixar o link aqui embaixo, dá uma olhada depois com calma e decide se faz sentido pra sua rotina',
     ],
-    [
-      'Sabe aquele produto que você descobre e fica tipo por que não conheci antes? Então é exatamente isso, simples de usar demais',
-      'Minha amiga me indicou e eu pensei que era exagero dela, spoiler não era, depois de uma semana já entendi o hype todo',
-      'Comecei a usar meio desacreditada e hoje não largo mais, é daqueles que viram essenciais na rotina e você não vive sem',
-      'Galera, achei que ia ser mais do mesmo mas esse produto me surpreendeu de verdade, textura resultado tudo diferente do resto',
-      'Vou mostrar o antes e depois porque não tem como explicar só com palavras, o resultado fala por si e aparece rápido',
+  },
+  casual: {
+    intro: [
+      'Tava arrumando minhas coisas agora e lembrei que preciso te contar sobre uma mudança que fiz na minha rotina recente',
+      'Então gente, deixa eu contar uma parada que aconteceu desde que comecei a testar um negócio novo na rotina aqui',
+      'Olha, eu nem ia gravar sobre isso mas aí acordei hoje com a pele tão boa que precisei vir falar aqui',
+      'Sabe quando você acha um produto que simplesmente encaixa na rotina sem drama nenhum? Pois é, preciso contar isso',
     ],
-  ],
-  engracado: [
-    [
-      'Meu marido perguntou se eu troquei de rosto, não troquei não amor só descobri um produto que realmente funciona de verdade',
-      'Passei vergonha na farmácia comprando cinco unidades de uma vez, a atendente olhou e eu disse que era estoque estratégico pessoal',
-      'Minha mãe ligou preocupada achando que eu tinha feito procedimento, mãe calma é só um produto bom ela já pediu o link',
-      'Acordei bonita hoje e levei um susto, fui ver o que mudou na rotina e lembrei que comecei a usar semana passada',
-      'Meus amigos acham que estou mentindo quando digo que é só esse produto, começaram a revistar meu banheiro procurando segredo',
+    dev: [
+      'A textura é leve demais, parece que não tem nada na pele mas você sente a diferença no toque ao longo do dia',
+      'No terceiro dia já acordei com a pele mais macia, sem aquela sensação de repuxar que eu tinha toda manhã antes',
+      'O mais legal é que dá pra passar rápido e sair, não precisa esperar secar nem nada, praticidade total no uso',
+      'Até nos dias que esqueço de cuidar direito da pele, parece que ele segura o resultado do dia anterior tranquilamente',
+      'Passei a usar de manhã e à noite e percebi que a oleosidade diminuiu bastante sem ressecar nada no processo',
+      'Ele tem um cheirinho suave que não incomoda e some rápido, pra quem é sensível a fragrância é ótimo isso',
+      'A pele ficou mais uniforme sem eu mudar mais nada na rotina, literalmente só adicionei esse passo e pronto já vi',
+      'Minha maquiagem passou a durar mais depois que comecei a usar como base de preparação, inesperado mas muito bom',
     ],
-    [
-      'Comprei escondido do meu orçamento mensal e meu contador interno está em pânico, mas minha pele está tão bem que compensa',
-      'Fiz um estoque tão grande que minha gaveta virou praticamente uma filial da loja, minha colega perguntou se abri negócio',
-      'Tentei não gostar pra economizar juro que tentei, mas não tem como o produto é bom demais e agora carteira que lute',
-      'Minha dermatologista perguntou o que eu mudei na rotina, mostrei o produto e ela anotou o nome isso diz tudo gente',
-      'O entregador já me conhece pelo nome de tanto que peço, chegou e disse parabéns pelo estoque dona cliente especial mesmo',
+    cta: [
+      'Deixei o link aqui embaixo pra você experimentar, se gostar tanto quanto eu volta aqui pra me contar depois',
+      'Se quiser testar também tá aí o link embaixo, sem pressão nenhuma mas acho que vale dar uma olhada nisso',
+      'O link tá aqui embaixo pra quem ficou curioso, dá uma olhada depois e decide por você mesmo sem pressa',
+      'Vou deixar o link embaixo, experimenta e me fala o que achou, quero saber se o efeito é parecido',
     ],
-  ],
-  urgente: [
-    [
-      'Preciso te contar isso agora porque o estoque está acabando rápido, esse produto mudou completamente minha rotina em poucos dias',
-      'Não espera mais pra testar isso, eu adiei por meses e me arrependo de cada dia que perdi sem usar na rotina',
-      'Todo mundo que eu conheço já está usando e quem não começou vai ficar pra trás, os resultados são visíveis rápido',
-      'Escuta eu sei que você já ouviu isso antes mas dessa vez é diferente de verdade, comecei ontem e já vi mudança',
-      'Corre que a promoção dura pouco e esse produto vale cada centavo mesmo no preço cheio, resultados em uma semana',
+  },
+  engracado: {
+    intro: [
+      'Meu marido perguntou se eu troquei de rosto essa semana, falei que não amor é só rotina nova e ele ficou confuso',
+      'Acordei bonita hoje e levei um susto honesto, fui investigar o que mudou e lembrei do produto novo na rotina',
+      'Comprei um negócio novo e minha colega jurou que eu fiz procedimento, gente é só um produto calma aí pelo amor',
+      'Minha mãe ligou preocupada achando que eu gastei fortunas no dermatologista, tive que explicar que foi um produto só',
     ],
-    [
-      'Para tudo que você está fazendo e presta atenção nisso, esse produto vai mudar sua rotina e você vai me agradecer',
-      'Se tem uma coisa que me arrependo é de não ter começado antes, cada dia sem usar é resultado perdido de verdade',
-      'Não tenho tempo pra enrolação então vou direto ao ponto funciona é rápido e o resultado aparece antes do que imagina',
-      'Última vez que vi esse preço foi há seis meses, se está em dúvida essa é a hora certa de experimentar agora',
-      'Cada dia que passa sem testar é um dia a menos de resultado, não adia mais e começa hoje mesmo sem desculpa',
+    dev: [
+      'O engraçado é que a textura é tão leve que eu achei que não ia fazer nada, aí a pele resolveu me surpreender',
+      'Passei três dias desconfiada olhando no espelho tipo será? Será? E no quarto dia confirmei que sim tava diferente mesmo',
+      'Minha amiga pediu pra cheirar o produto e ficou viciada no aroma, agora ela quer pegar emprestado todo santo dia',
+      'A aplicação é tão rápida que eu quase esqueço que passei, aí olho no espelho à noite e lembro pelo resultado',
+      'Tentei não gostar pra economizar juro que tentei, mas a pele tava tão boa que perdi a batalha com meu bolso',
+      'Meu gato me observa passar o produto com uma cara de julgamento, mas pelo menos um de nós tá com a pele boa',
+      'Usei por uma semana e já quero comprar de backup, meu instinto de acumuladora de produto bom ativou automaticamente',
+      'A embalagem é tão bonita que deixo no balcão do banheiro como decoração, funcional e estético ao mesmo tempo gente',
     ],
-  ],
-  educativo: [
-    [
-      'O que diferencia esse produto é a composição baseada em estudos recentes, cada ingrediente foi selecionado por eficácia comprovada',
-      'Muita gente não sabe mas a maioria dos produtos similares usa concentrações abaixo do necessário, este trabalha na dosagem ideal',
-      'Os ativos penetram nas camadas mais profundas e estimulam a regeneração natural, por isso os resultados são realmente duradouros',
-      'É importante entender que resultado de verdade leva tempo e consistência, este produto respeita o ciclo natural do organismo',
-      'A ciência por trás é fascinante, utiliza tecnologia de liberação controlada que mantém os ativos trabalhando por muito mais tempo',
+    cta: [
+      'Deixei o link aqui embaixo, vai por mim e testa antes que eu compre o estoque inteiro da loja sozinha',
+      'Se quiser testar também o link tá embaixo, prometo que você não vai me xingar por ter indicado esse aqui',
+      'O link tá logo abaixo, experimenta e depois me conta a reação do espelho porque a minha foi impagável demais',
+      'Vou deixar o link aqui embaixo, pega o seu antes que eu indique pra família inteira e acabe o estoque',
     ],
-    [
-      'Pesquisei bastante antes de escolher e o que me convenceu foram os dados clínicos com noventa e dois por cento de aprovação',
-      'Muitos produtos prometem resultado rápido e entregam irritação, este foi formulado com pH balanceado e ativos encapsulados seguros',
-      'Quero que entendam o porquê funciona e não apenas que funciona, a base científica é sólida e transparente com estudos',
-      'O segredo está na sinergia entre os componentes, isolados funcionam bem mas juntos potencializam o efeito em até três vezes',
-      'Analisei a composição completa e cada ingrediente tem função clara e complementar, sem componentes desnecessários na formulação toda',
+  },
+  urgente: {
+    intro: [
+      'Preciso te contar isso agora porque descobri algo que mudou minha rotina em poucos dias e não dá pra guardar',
+      'Para tudo e presta atenção porque o que eu vou te contar agora pode mudar como você cuida da sua pele',
+      'Não costumo gravar com pressa mas precisei vir aqui correndo te falar sobre o que aconteceu essa semana comigo',
+      'Escuta rápido porque isso é importante, descobri um produto que entrega resultado visível muito mais rápido do que eu esperava',
     ],
-  ],
-  inspirador: [
-    [
-      'Cuidar de si mesmo não é vaidade é um ato de amor próprio, quando descobri esse produto entendi que mereço o melhor',
-      'Cada pequena mudança na rotina pode transformar como você se sente, esse produto foi o primeiro passo de uma jornada nova',
-      'Você merece se olhar no espelho e se sentir incrível todos os dias, esse produto me devolveu a confiança que perdi',
-      'Não é sobre perfeição é sobre se sentir bem na própria pele, desde que comecei minha relação comigo mudou muito',
-      'A melhor versão de você está a uma decisão de distância, comecei com um produto simples e colho resultados incríveis',
+    dev: [
+      'Em três dias a textura da pele já mudou, não é exagero é cronômetro, fiquei de queixo caído com a velocidade',
+      'A absorção é instantânea e o efeito começa rápido, você acorda no dia seguinte e já percebe diferença no toque',
+      'Cada dia que passa o resultado fica mais evidente, é daqueles produtos que trabalham rápido sem pular etapas no processo',
+      'Testei de manhã e à noite por uma semana e o acúmulo de resultado foi impressionante comparado com outros que usei',
+      'O diferencial é que age rápido mas sem agredir, não irrita não descama só entrega resultado limpo e consistente',
+      'Não é daqueles que demora meses pra mostrar algo, em semanas você já consegue perceber a evolução claramente na pele',
+      'A sensação imediata após aplicar já é diferente, a pele responde rápido e você sente que algo está funcionando ali',
+      'Comparando com tudo que já usei esse foi disparado o que mostrou sinal de mudança mais cedo no processo todo',
     ],
-    [
-      'Quando você investe em algo que realmente funciona o retorno vai além do físico, a confiança impacta todas as áreas',
-      'Todo mundo merece ter acesso a produtos que cumprem o que prometem, encontrar este foi um divisor de águas pra mim',
-      'A transformação começa com uma escolha, escolhi priorizar meu bem-estar e esse produto se tornou parte essencial dessa jornada',
-      'Não deixe ninguém te dizer que cuidar de si é frescura, pequenos rituais diários constroem a confiança que muda tudo',
-      'Acredite no processo e dê tempo para os resultados, a consistência me mostrou que paciência e cuidado sempre são recompensados',
+    cta: [
+      'Deixei o link aqui embaixo, não adia mais porque cada dia sem testar é resultado que você tá deixando passar',
+      'O link tá aqui embaixo, corre e experimenta logo porque quando eu achei já queria ter começado muito antes',
+      'Se quiser testar o link tá embaixo, não espera o momento perfeito porque o melhor momento é agora mesmo',
+      'Vou deixar o link aqui, aproveita e começa hoje porque o arrependimento de quem testa é sempre não ter testado antes',
     ],
-  ],
+  },
+  educativo: {
+    intro: [
+      'Quero explicar hoje por que escolhi esse produto específico, fui atrás da composição antes de começar a usar de fato',
+      'Resolvi estudar os ingredientes ativos desse produto e o que encontrei me convenceu a testar com expectativa fundamentada',
+      'Antes de indicar qualquer coisa eu pesquiso bastante, e hoje quero te mostrar o que descobri sobre essa formulação aqui',
+      'Vou te explicar tecnicamente o que esse produto faz na pele porque entender o mecanismo ajuda a ter expectativa real',
+    ],
+    dev: [
+      'A concentração do ativo principal está na faixa ideal segundo estudos recentes, nem abaixo do eficaz nem acima do seguro',
+      'O pH da formulação respeita a barreira cutânea o que significa que os ativos penetram sem causar sensibilização desnecessária',
+      'Os ingredientes trabalham em sinergia, o ácido hialurônico hidrata enquanto a niacinamida controla oleosidade simultaneamente sem conflito',
+      'A tecnologia de liberação prolongada mantém os ativos trabalhando por horas, diferente de fórmulas que perdem efeito rápido demais',
+      'O veículo da fórmula foi pensado pra otimizar a entrega dos ativos nas camadas certas da pele onde fazem diferença',
+      'Diferente de produtos que usam concentrações marketing esse tem dosagem funcional, cada ingrediente está ali por um motivo claro',
+      'A ausência de fragrância forte e álcool na fórmula reduz muito o risco de reação adversa em peles mais sensíveis',
+      'Estudos clínicos mostram resultados a partir da terceira semana de uso contínuo, o que bate com minha experiência pessoal',
+    ],
+    cta: [
+      'Deixei o link aqui embaixo pra você ler a composição completa e decidir com informação se faz sentido pra você',
+      'Se quiser conferir os ingredientes por conta própria o link tá embaixo, recomendo analisar antes de qualquer decisão final',
+      'O link tá aqui embaixo, vale estudar a formulação com calma e ver se encaixa no que a sua pele precisa',
+      'Vou deixar o link embaixo, pesquisa os ativos depois e decide com base em dado e não em propaganda vaga',
+    ],
+  },
+  inspirador: {
+    intro: [
+      'Hoje quero falar sobre uma escolha pequena que fiz por mim mesma e que mudou como me sinto todos os dias',
+      'Cuidar de si não precisa ser complicado, às vezes um passo novo na rotina já transforma a forma como você se vê',
+      'Decidi priorizar meu bem-estar de verdade, não só falar sobre isso, e comecei com algo simples na rotina diária',
+      'Tem dias que a gente precisa de um lembrete de que merece cuidado, pra mim esse produto virou esse lembrete',
+    ],
+    dev: [
+      'A sensação de olhar no espelho e gostar do que vê é transformadora, e começou com uma mudança simples na rotina',
+      'Não é sobre ficar perfeita é sobre se sentir confortável na própria pele, e isso faz diferença em tudo ao redor',
+      'Quando a pele está bem a confiança muda naturalmente, percebi isso nas reuniões no trabalho e até nas fotos do dia',
+      'O ritual de aplicar virou meu momento de conexão comigo mesma, dois minutos de pausa que mudam o tom do dia',
+      'Cada pequeno progresso na pele me lembrava que consistência importa mais que intensidade, e isso vale pra tudo na vida',
+      'A transformação não foi só visual foi emocional, me sinto mais presente e mais gentil comigo desde que comecei esse hábito',
+      'Aprendi que cuidar da pele é um ato de respeito próprio, não vaidade, e isso mudou minha relação com autocuidado',
+      'O efeito mais bonito não foi na pele foi na atitude, comecei a me tratar melhor em outros aspectos também',
+    ],
+    cta: [
+      'Deixei o link aqui embaixo pra você dar o primeiro passo, às vezes tudo começa com uma decisão simples assim',
+      'Se quiser começar sua própria jornada o link tá embaixo, você merece se sentir bem todos os dias sem exceção',
+      'O link tá aqui embaixo, experimenta quando sentir que é a hora certa, o importante é começar em algum momento',
+      'Vou deixar o link embaixo, se hoje for o dia que você decide cuidar mais de si mesma aproveita agora',
+    ],
+  },
 };
 
 function pickRandomScene(): string {
   return scenePool[Math.floor(Math.random() * scenePool.length)];
 }
 
-function pickSequentialDialogues(tom: string, qty: number, startIndex = 0): string[] {
-  const toneKey = dialogueGroups[tom] ? tom : 'casual';
-  const groups = dialogueGroups[toneKey];
-  const groupIndex = Math.floor(Math.random() * groups.length);
-  const group = groups[groupIndex];
-
-  const dialogues: string[] = [];
-  for (let i = 0; i < qty; i++) {
-    const idx = (startIndex + i) % group.length;
-    dialogues.push(group[idx]);
+function shuffleArray<T>(arr: T[]): T[] {
+  const shuffled = [...arr];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
-  return dialogues;
+  return shuffled;
+}
+
+function getNarrativeRole(index: number, total: number): 'intro' | 'dev' | 'cta' {
+  if (total === 1) return 'intro'; // single prompt = intro+cta combined handled separately
+  if (index === 0) return 'intro';
+  if (index === total - 1) return 'cta';
+  return 'dev';
 }
 
 interface GenerationState {
   scene: string;
-  action: string;
   toneKey: string;
-  groupIndex: number;
+  usedIntroIdx: number;
+  usedDevIndices: number[];
+  usedCtaIdx: number;
+  actions: string[];
 }
 
 function generatePrompts(
-  produto: string,
-  nicho: string,
-  publico: string,
   tom: string,
-  range: string,
   qty: number
 ): { prompts: UGCPrompt[]; state: GenerationState } {
   const scene = pickRandomScene();
-  const rangeOpt = rangeOptions.find((r) => r.id === range);
-  const action = rangeOpt ? rangeOpt.action : rangeOptions[0].action;
+  const toneKey = dialoguesByRole[tom] ? tom : 'casual';
+  const roleDialogues = dialoguesByRole[toneKey];
 
-  const toneKey = dialogueGroups[tom] ? tom : 'casual';
-  const groups = dialogueGroups[toneKey];
-  const groupIndex = Math.floor(Math.random() * groups.length);
-  const group = groups[groupIndex];
+  // Shuffle and assign unique actions
+  const shuffledActions = shuffleArray(actionPool);
+  const actions = Array.from({ length: qty }, (_, i) => shuffledActions[i % shuffledActions.length]);
+
+  // Pick random indices for each role
+  const introIdx = Math.floor(Math.random() * roleDialogues.intro.length);
+  const ctaIdx = Math.floor(Math.random() * roleDialogues.cta.length);
+  const shuffledDevIndices = shuffleArray(Array.from({ length: roleDialogues.dev.length }, (_, i) => i));
 
   const prompts: UGCPrompt[] = [];
+  let devCounter = 0;
+  const usedDevIndices: number[] = [];
+
   for (let i = 0; i < qty; i++) {
-    const idx = i % group.length;
+    const role = getNarrativeRole(i, qty);
+    let dialogue: string;
+
+    if (qty === 1) {
+      // Single prompt: combine intro feel with CTA
+      dialogue = roleDialogues.intro[introIdx];
+    } else if (role === 'intro') {
+      dialogue = roleDialogues.intro[introIdx];
+    } else if (role === 'cta') {
+      dialogue = roleDialogues.cta[ctaIdx];
+    } else {
+      const devIdx = shuffledDevIndices[devCounter % shuffledDevIndices.length];
+      usedDevIndices.push(devIdx);
+      dialogue = roleDialogues.dev[devIdx];
+      devCounter++;
+    }
+
     prompts.push({
       id: i + 1,
       scene,
-      action,
-      audio: { dialogue: group[idx] },
+      action: actions[i],
+      audio: { dialogue },
     });
   }
 
-  return { prompts, state: { scene, action, toneKey, groupIndex } };
+  return {
+    prompts,
+    state: { scene, toneKey, usedIntroIdx: introIdx, usedDevIndices, usedCtaIdx: ctaIdx, actions },
+  };
 }
 
 const MIN_CHARS = 120;
@@ -208,17 +290,16 @@ const ScriptGeneratorPage = () => {
   const [nicho, setNicho] = useState('');
   const [publico, setPublico] = useState('');
   const [tom, setTom] = useState('');
-  const [range, setRange] = useState('');
   const [qty, setQty] = useState(3);
   const [results, setResults] = useState<UGCPrompt[]>([]);
   const [genState, setGenState] = useState<GenerationState | null>(null);
   const [copiedId, setCopiedId] = useState<number | null>(null);
 
-  const canGenerate = produto && nicho && publico && tom && range;
+  const canGenerate = produto && nicho && publico && tom;
 
   const handleGenerate = () => {
     if (!canGenerate) return;
-    const { prompts, state } = generatePrompts(produto, nicho, publico, tom, range, qty);
+    const { prompts, state } = generatePrompts(tom, qty);
     setResults(prompts);
     setGenState(state);
   };
@@ -227,19 +308,29 @@ const ScriptGeneratorPage = () => {
     if (!genState) return;
 
     setResults((prev) => {
-      const groups = dialogueGroups[genState.toneKey];
-      // Pick a different group for regeneration
-      const availableGroups = groups.filter((_, i) => i !== genState.groupIndex);
-      const newGroup = availableGroups.length > 0
-        ? availableGroups[Math.floor(Math.random() * availableGroups.length)]
-        : groups[genState.groupIndex];
+      const roleDialogues = dialoguesByRole[genState.toneKey];
+      const total = prev.length;
 
-      // Regenerate from promptId onwards
-      const startIdx = promptId - 1;
       return prev.map((p) => {
         if (p.id < promptId) return p;
-        const dialogueIdx = (p.id - 1) % newGroup.length;
-        return { ...p, audio: { dialogue: newGroup[dialogueIdx] } };
+        const role = getNarrativeRole(p.id - 1, total);
+
+        let newDialogue: string;
+        if (role === 'intro') {
+          const pool = roleDialogues.intro;
+          newDialogue = pool[Math.floor(Math.random() * pool.length)];
+        } else if (role === 'cta') {
+          const pool = roleDialogues.cta;
+          newDialogue = pool[Math.floor(Math.random() * pool.length)];
+        } else {
+          const pool = roleDialogues.dev;
+          newDialogue = pool[Math.floor(Math.random() * pool.length)];
+        }
+
+        // Also assign a new action from pool
+        const newAction = actionPool[Math.floor(Math.random() * actionPool.length)];
+
+        return { ...p, action: newAction, audio: { dialogue: newDialogue } };
       });
     });
   };
@@ -293,17 +384,6 @@ const ScriptGeneratorPage = () => {
                 <SelectContent>
                   {toneOptions.map((t) => (
                     <SelectItem key={t.id} value={t.id}>{t.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Tipo de Ação</Label>
-              <Select value={range} onValueChange={setRange}>
-                <SelectTrigger><SelectValue placeholder="Selecione o tipo de ação" /></SelectTrigger>
-                <SelectContent>
-                  {rangeOptions.map((r) => (
-                    <SelectItem key={r.id} value={r.id}>{r.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
