@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FileText, Sparkles, Copy, Check, RefreshCw } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const toneOptions = [
   { id: 'profissional', label: 'Profissional' },
@@ -16,9 +16,14 @@ const toneOptions = [
   { id: 'inspirador', label: 'Inspirador' },
 ];
 
-interface UGCScene {
+const rangeOptions = [
+  { id: 'parado', label: 'Parado', action: 'Gesticula levemente com as mãos enquanto fala, olha direto para a câmera com expressão natural' },
+  { id: 'produto', label: 'Com produto', action: 'Segura o produto na altura do peito, gesticula com uma mão enquanto apresenta com a outra' },
+  { id: 'pessoa', label: 'Com pessoa', action: 'Gesticula em direção à pessoa ao lado enquanto fala, alterna o olhar entre a câmera e o interlocutor' },
+];
+
+interface UGCPrompt {
   id: number;
-  angle: string;
   scene: string;
   action: string;
   audio: {
@@ -26,205 +31,233 @@ interface UGCScene {
   };
 }
 
-const anglePool = [
-  'Close-up frontal',
-  'Medium shot lateral',
-  'Over-the-shoulder',
-  'Wide shot ambiente',
-  'Low angle',
-  'High angle',
-  'POV camera',
+const scenePool = [
+  'Iluminação natural suave vinda de janela lateral, fundo desfocado com plantas e objetos do cotidiano',
+  'Ambiente externo urbano com luz dourada do fim de tarde, profundidade de campo curta',
+  'Quarto bem iluminado com ring light frontal, fundo clean e organizado',
+  'Cozinha moderna com bancada visível, luz branca equilibrada e elementos decorativos',
+  'Escritório home office com monitor ao fundo desfocado, iluminação mista natural e artificial',
+  'Banheiro com espelho e iluminação frontal forte, vapor leve ao fundo',
+  'Sala de estar aconchegante com sofá e almofadas, luz quente de abajur lateral',
+  'Varanda com vista urbana desfocada, luz natural direta filtrada por cortina',
+  'Estúdio minimalista com fundo neutro, iluminação profissional de três pontos',
+  'Café ou restaurante com ambiente movimentado ao fundo desfocado, luz ambiente quente',
 ];
 
-function shuffle<T>(arr: T[]): T[] {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-const sceneTemplates: Record<string, { scenes: string[]; actions: string[]; dialogues: Record<string, string[]> }> = {
-  default: {
-    scenes: [
-      'Iluminação natural suave vinda de janela lateral, fundo desfocado com plantas e objetos do cotidiano',
-      'Ambiente externo urbano com luz dourada do fim de tarde, profundidade de campo curta',
-      'Quarto bem iluminado com ring light frontal, fundo clean e organizado',
-      'Cozinha moderna com bancada visível, luz branca equilibrada e elementos decorativos',
-      'Escritório home office com monitor ao fundo desfocado, iluminação mista natural e artificial',
-      'Banheiro com espelho e iluminação frontal forte, vapor leve ao fundo',
-      'Sala de estar aconchegante com sofá e almofadas, luz quente de abajur lateral',
-      'Varanda com vista urbana desfocada, luz natural direta filtrada por cortina',
-      'Estúdio minimalista com fundo neutro, iluminação profissional de três pontos',
-      'Café ou restaurante com ambiente movimentado ao fundo desfocado, luz ambiente quente',
+// Dialogue groups: each group is a sequential narrative (part 1 introduces, 2 develops, 3 deepens, 4 concludes, 5 wraps)
+const dialogueGroups: Record<string, string[][]> = {
+  profissional: [
+    [
+      'Depois de testar diversas alternativas no mercado, posso afirmar com segurança que este produto entrega resultados consistentes e mensuráveis',
+      'A diferença que percebi nos primeiros dias foi significativa, os dados comprovam uma eficácia que supera qualquer expectativa inicial',
+      'Os profissionais da área já reconhecem como referência e os resultados falam por si, sem necessidade de exagero algum',
+      'Em termos de custo-benefício, a performance entregue justifica cada centavo investido e os resultados são realmente duradouros',
+      'Recomendo sem hesitação para quem busca resultado real, a qualidade dos ingredientes faz toda a diferença no longo prazo',
     ],
-    actions: [
-      'Olha diretamente para a câmera com expressão genuína de surpresa, gesticula com as mãos enquanto fala',
-      'Segura o produto na altura do rosto, inclina levemente a cabeça e sorri de forma natural',
-      'Caminha em direção à câmera enquanto fala, para e aponta para algo fora do quadro',
-      'Está sentado de forma relaxada, inclina-se para frente com interesse ao mencionar o produto',
-      'Faz um gesto de negação com a cabeça antes de apresentar a solução, muda a expressão para entusiasmo',
-      'Aplica ou demonstra o produto com movimentos lentos e deliberados, olha para a câmera no final',
-      'Apoia o queixo na mão pensativo, depois abre um sorriso e começa a explicar',
-      'Gesticula contando nos dedos os benefícios, mantém contato visual constante',
-      'Pega o celular e mostra a tela para a câmera, expressão de quem descobriu algo valioso',
-      'Levanta as sobrancelhas em surpresa, faz pausa dramática antes de continuar falando',
+    [
+      'Analisei criteriosamente cada componente e a formulação é realmente superior ao que encontramos no mercado atualmente disponível',
+      'Os resultados aparecem de forma gradual porém consistente, exatamente como prometido pela marca em seus estudos clínicos publicados',
+      'Minha equipe inteira adotou este produto após ver meus resultados pessoais nas primeiras semanas de uso contínuo e regular',
+      'O diferencial está nos detalhes técnicos que poucos percebem, a tecnologia empregada garante uma experiência verdadeiramente superior',
+      'Já avaliei centenas de produtos similares na carreira e este se destaca pela formulação inteligente e resultados sem ajustes',
     ],
-    dialogues: {
-      profissional: [
-        'Depois de testar diversas alternativas no mercado, posso afirmar com segurança que este produto entrega resultados consistentes e mensuráveis em poucas semanas de uso contínuo',
-        'A diferença que percebi nos primeiros dias de uso foi significativa. Os dados comprovam que a eficácia deste produto supera qualquer expectativa que eu tinha inicialmente',
-        'Profissionais da área já reconhecem este produto como referência. Incorporei na minha rotina e os resultados falam por si, sem necessidade de exagero algum',
-        'Analisei criteriosamente cada componente e a formulação é realmente superior. Os resultados aparecem de forma gradual porém consistente, exatamente como prometido pela marca',
-        'Quando comecei a utilizar, mantive expectativas moderadas. Três semanas depois, os números mostram uma melhoria que supera qualquer outro produto que testei antes',
-        'Este é o tipo de produto que recomendo sem hesitação para quem busca resultado real. A qualidade dos ingredientes e a eficácia comprovada fazem toda a diferença',
-        'Em termos de custo-benefício, ainda não encontrei nada que se compare. A performance entregue justifica cada centavo investido e os resultados são duradouros',
-        'Minha equipe inteira adotou este produto após ver meus resultados. A consistência na entrega e a qualidade do acabamento são incomparáveis no mercado atual',
-        'O diferencial está nos detalhes técnicos que poucos percebem. A tecnologia empregada neste produto garante uma experiência superior que se nota desde o primeiro uso',
-        'Já avaliei centenas de produtos similares na minha carreira. Este se destaca pela formulação inteligente e pelos resultados que aparecem sem precisar de ajustes constantes',
-      ],
-      casual: [
-        'Gente, eu não acreditei quando vi o resultado. Tipo, uso há duas semanas e já tô vendo diferença real, sem frescura nenhuma, funciona mesmo no dia a dia',
-        'Tava mega cética no começo, confesso. Mas aí comecei a usar e caramba, o negócio entrega o que promete. Agora virou item obrigatório na minha rotina toda',
-        'Olha, vou ser sincera com vocês: testei um monte de coisa parecida e nada chegou perto disso aqui. A diferença é gritante e aparece muito rápido',
-        'Não é publi não, tô falando sério. Comprei com meu dinheiro e amei tanto que precisei vir contar pra vocês porque realmente mudou meu jogo completamente',
-        'Sabe aquele produto que você descobre e fica tipo por que não conheci antes? Então, é exatamente isso. Simples de usar e o resultado é absurdo',
-        'Minha amiga me indicou e eu pensei que era exagero dela. Spoiler: não era. Depois de uma semana usando já entendi todo o hype que fazem',
-        'Galera, achei que ia ser mais do mesmo, mas esse produto me surpreendeu de verdade. A textura, o resultado, tudo diferente do que já tinha testado',
-        'Comecei a usar meio desacreditada e hoje não largo mais. É daqueles produtos que viram essenciais na rotina e você se pergunta como vivia sem ele',
-        'Vou mostrar pra vocês o antes e depois porque não tem como explicar só com palavras. O resultado fala por si e aparece muito rápido mesmo',
-        'Se alguém me perguntasse qual produto indicar sem pensar duas vezes, seria esse aqui. Praticidade, resultado visível e preço justo, combinação perfeita pra mim',
-      ],
-      engracado: [
-        'Meu marido perguntou se eu troquei de rosto. Não troquei não, amor, só descobri um produto que realmente funciona e agora não consigo parar de me olhar',
-        'Passei vergonha na farmácia comprando cinco unidades de uma vez. A atendente olhou pra mim e eu disse que era estoque estratégico de sobrevivência pessoal',
-        'Minha mãe ligou preocupada achando que eu tinha feito procedimento. Mãe, calma, é só um produto bom. Ela já pediu o link e comprou dois',
-        'Acordei bonita hoje e levei um susto. Fui ver o que mudou na rotina e lembrei que comecei a usar esse produto semana passada, coincidência zero',
-        'Meus amigos acham que estou mentindo quando digo que é só esse produto. Começaram a revistar meu banheiro procurando o segredo, mas é só isso mesmo',
-        'O entregador já me conhece pelo nome de tanto que peço. Ele chegou hoje e disse parabéns pelo estoque, obrigada pela fidelidade dona cliente especial',
-        'Comprei escondido do meu orçamento mensal e meu contador interno está em pânico. Mas minha pele está tão bem que considero investimento e não gasto',
-        'Fiz um estoque tão grande que minha gaveta virou praticamente uma filial da loja. Minha colega viu e perguntou se eu estava abrindo um negócio',
-        'Tentei não gostar pra economizar, juro que tentei. Mas não tem como, o produto é bom demais e agora minha carteira que lute com as consequências',
-        'Minha dermatologista perguntou o que eu mudei na rotina. Mostrei o produto e ela anotou o nome. Quando até a médica quer, é sinal de qualidade',
-      ],
-      urgente: [
-        'Preciso te contar isso agora porque o estoque está acabando rápido. Esse produto mudou completamente minha rotina e os resultados aparecem em poucos dias de uso',
-        'Não espera mais pra testar isso. Eu adiei por meses e me arrependo de cada dia que perdi sem usar esse produto incrível na minha rotina',
-        'Todo mundo que eu conheço já está usando e quem não começou vai ficar pra trás. Os resultados são rápidos e a diferença é visível imediatamente',
-        'Escuta, eu sei que você já ouviu isso antes, mas dessa vez é diferente de verdade. Comecei ontem e hoje já percebi mudança, sem exagero nenhum',
-        'Estava guardando esse segredo só pra mim mas não consigo mais. Preciso compartilhar antes que acabe porque merece ser conhecido por todo mundo agora mesmo',
-        'Corre que a promoção dura pouco e esse produto vale cada centavo mesmo no preço cheio. Os resultados que tive em uma semana foram impressionantes',
-        'Não tenho tempo pra enrolação então vou direto ao ponto: funciona, é rápido e o resultado aparece antes do que você imagina. Começa hoje mesmo',
-        'Se tem uma coisa que me arrependo é de não ter começado antes. Cada dia sem usar é um dia de resultado perdido, então não adia mais',
-        'Para tudo que você está fazendo e presta atenção nisso. Esse produto vai mudar sua rotina e você vai me agradecer por ter contado a tempo',
-        'Última vez que vi esse preço foi há seis meses. Se você está em dúvida, essa é a hora certa de experimentar antes que a oportunidade passe',
-      ],
-      educativo: [
-        'O que diferencia esse produto é a composição baseada em estudos recentes. Cada ingrediente foi selecionado por sua eficácia comprovada em pesquisas independentes publicadas',
-        'Muita gente não sabe, mas a maioria dos produtos similares usa concentrações abaixo do necessário. Este aqui trabalha com a dosagem ideal segundo a literatura',
-        'Vou explicar como funciona de forma simples: os ativos penetram nas camadas mais profundas e estimulam a regeneração natural, por isso os resultados são duradouros',
-        'É importante entender que resultado de verdade leva tempo e consistência. Esse produto foi desenvolvido para entrega gradual, respeitando o ciclo natural do organismo',
-        'Pesquisei bastante antes de escolher e o que me convenceu foram os dados clínicos. Noventa e dois por cento dos participantes relataram melhoria significativa em trinta dias',
-        'A ciência por trás deste produto é fascinante. Ele utiliza uma tecnologia de liberação controlada que mantém os ativos trabalhando por muito mais tempo que o comum',
-        'Muitos produtos prometem resultado rápido e entregam irritação. Este foi formulado com pH balanceado e ativos encapsulados que protegem a barreira natural durante todo uso',
-        'Quero que vocês entendam o porquê funciona e não apenas que funciona. A base científica deste produto é sólida e transparente, com estudos disponíveis publicamente',
-        'O segredo está na sinergia entre os componentes. Isolados funcionam bem, mas juntos nesta formulação específica potencializam o efeito em até três vezes mais rápido',
-        'Antes de indicar qualquer produto eu analiso a composição completa. Neste caso cada ingrediente tem função clara e complementar, sem componentes desnecessários na formulação toda',
-      ],
-      inspirador: [
-        'Cuidar de si mesmo não é vaidade, é um ato de amor próprio. Quando descobri esse produto, entendi que mereço investir no melhor para minha rotina',
-        'Cada pequena mudança na rotina pode transformar como você se sente consigo mesmo. Esse produto foi o primeiro passo de uma jornada que mudou minha autoestima',
-        'Você merece se olhar no espelho e se sentir incrível todos os dias. Esse produto me devolveu uma confiança que eu achava que tinha perdido pra sempre',
-        'Não é sobre perfeição, é sobre se sentir bem na própria pele. Desde que comecei a usar, minha relação comigo mesmo mudou completamente para muito melhor',
-        'A melhor versão de você está a uma decisão de distância. Comecei essa mudança com um produto simples e hoje colho resultados que transformaram minha rotina',
-        'Quando você investe em algo que realmente funciona, o retorno vai além do físico. A confiança que ganhei usando esse produto impacta todas as áreas da vida',
-        'Todo mundo merece ter acesso a produtos que realmente cumprem o que prometem. Encontrar este foi um divisor de águas na forma como cuido de mim',
-        'A transformação começa com uma escolha. Escolhi priorizar meu bem-estar e esse produto se tornou parte essencial dessa jornada de autoconhecimento e cuidado diário comigo',
-        'Não deixe ninguém te dizer que cuidar de si é frescura. Esse produto me ensinou que pequenos rituais diários constroem a confiança que muda tudo ao redor',
-        'Acredite no processo e dê tempo para os resultados aparecerem. A consistência com esse produto me mostrou que paciência e cuidado sempre são recompensados no final',
-      ],
-    },
-  },
+  ],
+  casual: [
+    [
+      'Gente, eu não acreditei quando vi o resultado, tipo uso há duas semanas e já tô vendo diferença real sem frescura nenhuma',
+      'Tava mega cética no começo, confesso, mas aí comecei a usar e caramba o negócio entrega o que promete de verdade mesmo',
+      'Olha, vou ser sincera com vocês, testei um monte de coisa parecida e nada chegou perto disso aqui, a diferença é gritante',
+      'Não é publi não, tô falando sério, comprei com meu dinheiro e amei tanto que precisei vir contar pra vocês agora',
+      'Se alguém me perguntasse qual produto indicar sem pensar duas vezes seria esse aqui, praticidade resultado visível e preço justo',
+    ],
+    [
+      'Sabe aquele produto que você descobre e fica tipo por que não conheci antes? Então é exatamente isso, simples de usar demais',
+      'Minha amiga me indicou e eu pensei que era exagero dela, spoiler não era, depois de uma semana já entendi o hype todo',
+      'Comecei a usar meio desacreditada e hoje não largo mais, é daqueles que viram essenciais na rotina e você não vive sem',
+      'Galera, achei que ia ser mais do mesmo mas esse produto me surpreendeu de verdade, textura resultado tudo diferente do resto',
+      'Vou mostrar o antes e depois porque não tem como explicar só com palavras, o resultado fala por si e aparece rápido',
+    ],
+  ],
+  engracado: [
+    [
+      'Meu marido perguntou se eu troquei de rosto, não troquei não amor só descobri um produto que realmente funciona de verdade',
+      'Passei vergonha na farmácia comprando cinco unidades de uma vez, a atendente olhou e eu disse que era estoque estratégico pessoal',
+      'Minha mãe ligou preocupada achando que eu tinha feito procedimento, mãe calma é só um produto bom ela já pediu o link',
+      'Acordei bonita hoje e levei um susto, fui ver o que mudou na rotina e lembrei que comecei a usar semana passada',
+      'Meus amigos acham que estou mentindo quando digo que é só esse produto, começaram a revistar meu banheiro procurando segredo',
+    ],
+    [
+      'Comprei escondido do meu orçamento mensal e meu contador interno está em pânico, mas minha pele está tão bem que compensa',
+      'Fiz um estoque tão grande que minha gaveta virou praticamente uma filial da loja, minha colega perguntou se abri negócio',
+      'Tentei não gostar pra economizar juro que tentei, mas não tem como o produto é bom demais e agora carteira que lute',
+      'Minha dermatologista perguntou o que eu mudei na rotina, mostrei o produto e ela anotou o nome isso diz tudo gente',
+      'O entregador já me conhece pelo nome de tanto que peço, chegou e disse parabéns pelo estoque dona cliente especial mesmo',
+    ],
+  ],
+  urgente: [
+    [
+      'Preciso te contar isso agora porque o estoque está acabando rápido, esse produto mudou completamente minha rotina em poucos dias',
+      'Não espera mais pra testar isso, eu adiei por meses e me arrependo de cada dia que perdi sem usar na rotina',
+      'Todo mundo que eu conheço já está usando e quem não começou vai ficar pra trás, os resultados são visíveis rápido',
+      'Escuta eu sei que você já ouviu isso antes mas dessa vez é diferente de verdade, comecei ontem e já vi mudança',
+      'Corre que a promoção dura pouco e esse produto vale cada centavo mesmo no preço cheio, resultados em uma semana',
+    ],
+    [
+      'Para tudo que você está fazendo e presta atenção nisso, esse produto vai mudar sua rotina e você vai me agradecer',
+      'Se tem uma coisa que me arrependo é de não ter começado antes, cada dia sem usar é resultado perdido de verdade',
+      'Não tenho tempo pra enrolação então vou direto ao ponto funciona é rápido e o resultado aparece antes do que imagina',
+      'Última vez que vi esse preço foi há seis meses, se está em dúvida essa é a hora certa de experimentar agora',
+      'Cada dia que passa sem testar é um dia a menos de resultado, não adia mais e começa hoje mesmo sem desculpa',
+    ],
+  ],
+  educativo: [
+    [
+      'O que diferencia esse produto é a composição baseada em estudos recentes, cada ingrediente foi selecionado por eficácia comprovada',
+      'Muita gente não sabe mas a maioria dos produtos similares usa concentrações abaixo do necessário, este trabalha na dosagem ideal',
+      'Os ativos penetram nas camadas mais profundas e estimulam a regeneração natural, por isso os resultados são realmente duradouros',
+      'É importante entender que resultado de verdade leva tempo e consistência, este produto respeita o ciclo natural do organismo',
+      'A ciência por trás é fascinante, utiliza tecnologia de liberação controlada que mantém os ativos trabalhando por muito mais tempo',
+    ],
+    [
+      'Pesquisei bastante antes de escolher e o que me convenceu foram os dados clínicos com noventa e dois por cento de aprovação',
+      'Muitos produtos prometem resultado rápido e entregam irritação, este foi formulado com pH balanceado e ativos encapsulados seguros',
+      'Quero que entendam o porquê funciona e não apenas que funciona, a base científica é sólida e transparente com estudos',
+      'O segredo está na sinergia entre os componentes, isolados funcionam bem mas juntos potencializam o efeito em até três vezes',
+      'Analisei a composição completa e cada ingrediente tem função clara e complementar, sem componentes desnecessários na formulação toda',
+    ],
+  ],
+  inspirador: [
+    [
+      'Cuidar de si mesmo não é vaidade é um ato de amor próprio, quando descobri esse produto entendi que mereço o melhor',
+      'Cada pequena mudança na rotina pode transformar como você se sente, esse produto foi o primeiro passo de uma jornada nova',
+      'Você merece se olhar no espelho e se sentir incrível todos os dias, esse produto me devolveu a confiança que perdi',
+      'Não é sobre perfeição é sobre se sentir bem na própria pele, desde que comecei minha relação comigo mudou muito',
+      'A melhor versão de você está a uma decisão de distância, comecei com um produto simples e colho resultados incríveis',
+    ],
+    [
+      'Quando você investe em algo que realmente funciona o retorno vai além do físico, a confiança impacta todas as áreas',
+      'Todo mundo merece ter acesso a produtos que cumprem o que prometem, encontrar este foi um divisor de águas pra mim',
+      'A transformação começa com uma escolha, escolhi priorizar meu bem-estar e esse produto se tornou parte essencial dessa jornada',
+      'Não deixe ninguém te dizer que cuidar de si é frescura, pequenos rituais diários constroem a confiança que muda tudo',
+      'Acredite no processo e dê tempo para os resultados, a consistência me mostrou que paciência e cuidado sempre são recompensados',
+    ],
+  ],
 };
 
-function generateSingleScene(
-  id: number,
-  angle: string,
-  produto: string,
-  nicho: string,
-  publico: string,
-  tom: string
-): UGCScene {
-  const t = sceneTemplates.default;
-  const sceneDesc = t.scenes[Math.floor(Math.random() * t.scenes.length)];
-  const actionDesc = t.actions[Math.floor(Math.random() * t.actions.length)];
-  const toneKey = t.dialogues[tom] ? tom : 'casual';
-  const dialogues = t.dialogues[toneKey];
-  const dialogue = dialogues[Math.floor(Math.random() * dialogues.length)];
-
-  return { id, angle, scene: sceneDesc, action: actionDesc, audio: { dialogue } };
+function pickRandomScene(): string {
+  return scenePool[Math.floor(Math.random() * scenePool.length)];
 }
 
-function generateScenes(
+function pickSequentialDialogues(tom: string, qty: number, startIndex = 0): string[] {
+  const toneKey = dialogueGroups[tom] ? tom : 'casual';
+  const groups = dialogueGroups[toneKey];
+  const groupIndex = Math.floor(Math.random() * groups.length);
+  const group = groups[groupIndex];
+
+  const dialogues: string[] = [];
+  for (let i = 0; i < qty; i++) {
+    const idx = (startIndex + i) % group.length;
+    dialogues.push(group[idx]);
+  }
+  return dialogues;
+}
+
+interface GenerationState {
+  scene: string;
+  action: string;
+  toneKey: string;
+  groupIndex: number;
+}
+
+function generatePrompts(
   produto: string,
   nicho: string,
   publico: string,
   tom: string,
+  range: string,
   qty: number
-): UGCScene[] {
-  const scenes: UGCScene[] = [];
-  let pool: string[] = [];
+): { prompts: UGCPrompt[]; state: GenerationState } {
+  const scene = pickRandomScene();
+  const rangeOpt = rangeOptions.find((r) => r.id === range);
+  const action = rangeOpt ? rangeOpt.action : rangeOptions[0].action;
 
+  const toneKey = dialogueGroups[tom] ? tom : 'casual';
+  const groups = dialogueGroups[toneKey];
+  const groupIndex = Math.floor(Math.random() * groups.length);
+  const group = groups[groupIndex];
+
+  const prompts: UGCPrompt[] = [];
   for (let i = 0; i < qty; i++) {
-    if (pool.length === 0) pool = shuffle(anglePool);
-    const angle = pool.pop()!;
-    scenes.push(generateSingleScene(i + 1, angle, produto, nicho, publico, tom));
+    const idx = i % group.length;
+    prompts.push({
+      id: i + 1,
+      scene,
+      action,
+      audio: { dialogue: group[idx] },
+    });
   }
 
-  return scenes;
+  return { prompts, state: { scene, action, toneKey, groupIndex } };
 }
+
+const MIN_CHARS = 120;
+const MAX_CHARS = 160;
 
 const ScriptGeneratorPage = () => {
   const [produto, setProduto] = useState('');
   const [nicho, setNicho] = useState('');
   const [publico, setPublico] = useState('');
   const [tom, setTom] = useState('');
+  const [range, setRange] = useState('');
   const [qty, setQty] = useState(3);
-  const [results, setResults] = useState<UGCScene[]>([]);
+  const [results, setResults] = useState<UGCPrompt[]>([]);
+  const [genState, setGenState] = useState<GenerationState | null>(null);
   const [copiedId, setCopiedId] = useState<number | null>(null);
 
-  const canGenerate = produto && nicho && publico && tom;
+  const canGenerate = produto && nicho && publico && tom && range;
 
   const handleGenerate = () => {
     if (!canGenerate) return;
-    setResults(generateScenes(produto, nicho, publico, tom, qty));
+    const { prompts, state } = generatePrompts(produto, nicho, publico, tom, range, qty);
+    setResults(prompts);
+    setGenState(state);
   };
 
-  const handleRegenerate = (sceneId: number) => {
-    setResults((prev) =>
-      prev.map((s) => {
-        if (s.id !== sceneId) return s;
-        const angle = anglePool[Math.floor(Math.random() * anglePool.length)];
-        return generateSingleScene(s.id, angle, produto, nicho, publico, tom);
-      })
-    );
+  const handleRegenerate = (promptId: number) => {
+    if (!genState) return;
+
+    setResults((prev) => {
+      const groups = dialogueGroups[genState.toneKey];
+      // Pick a different group for regeneration
+      const availableGroups = groups.filter((_, i) => i !== genState.groupIndex);
+      const newGroup = availableGroups.length > 0
+        ? availableGroups[Math.floor(Math.random() * availableGroups.length)]
+        : groups[genState.groupIndex];
+
+      // Regenerate from promptId onwards
+      const startIdx = promptId - 1;
+      return prev.map((p) => {
+        if (p.id < promptId) return p;
+        const dialogueIdx = (p.id - 1) % newGroup.length;
+        return { ...p, audio: { dialogue: newGroup[dialogueIdx] } };
+      });
+    });
   };
 
-  const handleCopyJSON = async (scene: UGCScene) => {
-    const len = scene.audio.dialogue.length;
-    if (len < 140 || len > 220) return;
+  const handleCopyJSON = async (prompt: UGCPrompt) => {
+    const len = prompt.audio.dialogue.length;
+    if (len < MIN_CHARS || len > MAX_CHARS) return;
     const json = JSON.stringify(
-      { scene: scene.scene, action: scene.action, audio: { dialogue: scene.audio.dialogue } },
+      { scene: prompt.scene, action: prompt.action, audio: { dialogue: prompt.audio.dialogue } },
       null,
       2
     );
     await navigator.clipboard.writeText(json);
-    setCopiedId(scene.id);
+    setCopiedId(prompt.id);
     setTimeout(() => setCopiedId(null), 1600);
   };
 
-  const isDialogueValid = (d: string) => d.length >= 140 && d.length <= 220;
+  const isDialogueValid = (d: string) => d.length >= MIN_CHARS && d.length <= MAX_CHARS;
 
   return (
     <div className="flex flex-1 flex-col p-6 md:p-8">
@@ -265,8 +298,19 @@ const ScriptGeneratorPage = () => {
               </Select>
             </div>
             <div className="space-y-2">
+              <Label>Tipo de Ação</Label>
+              <Select value={range} onValueChange={setRange}>
+                <SelectTrigger><SelectValue placeholder="Selecione o tipo de ação" /></SelectTrigger>
+                <SelectContent>
+                  {rangeOptions.map((r) => (
+                    <SelectItem key={r.id} value={r.id}>{r.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label>Quantidade de vídeos</Label>
+                <Label>Quantidade de prompts</Label>
                 <span className="text-sm font-semibold text-accent-foreground">{qty}</span>
               </div>
               <Slider value={[qty]} onValueChange={(v) => setQty(v[0])} min={1} max={10} step={1} />
@@ -287,52 +331,58 @@ const ScriptGeneratorPage = () => {
               <p className="text-sm text-muted-foreground mt-1">Preencha o formulário e clique em "Gerar Cenas"</p>
             </div>
           ) : (
-            results.map((scene) => {
-              const charCount = scene.audio.dialogue.length;
-              const valid = isDialogueValid(scene.audio.dialogue);
-              return (
-                <div key={scene.id} className="rounded-2xl border border-border bg-card p-6 shadow-card animate-in fade-in slide-in-from-bottom-2 duration-300">
-                  {/* Header */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <h3 className="text-base font-semibold font-display text-card-foreground">Cena {scene.id}</h3>
-                      <Badge variant="secondary" className="text-xs">{scene.angle}</Badge>
+            <TooltipProvider>
+              {results.map((prompt) => {
+                const charCount = prompt.audio.dialogue.length;
+                const valid = isDialogueValid(prompt.audio.dialogue);
+                return (
+                  <div key={prompt.id} className="rounded-2xl border border-border bg-card p-6 shadow-card animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-base font-semibold font-display text-card-foreground">Prompt {prompt.id}</h3>
+                      <div className="flex items-center gap-1">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="sm" onClick={() => handleRegenerate(prompt.id)}>
+                              <RefreshCw className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{prompt.id === 1 ? 'Regenerar todos os prompts' : 'Regenerar este e os seguintes para manter continuidade'}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                        <Button variant="ghost" size="sm" onClick={() => handleCopyJSON(prompt)} disabled={!valid} title={valid ? 'Copiar JSON' : `Dialogue fora do intervalo ${MIN_CHARS}-${MAX_CHARS}`}>
+                          {copiedId === prompt.id ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => handleRegenerate(scene.id)} title="Regenerar cena">
-                        <RefreshCw className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleCopyJSON(scene)} disabled={!valid} title={valid ? 'Copiar JSON' : 'Dialogue fora do intervalo 140-220'}>
-                        {copiedId === scene.id ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                  </div>
 
-                  {/* Body */}
-                  <div className="space-y-3 rounded-lg bg-secondary p-4 text-sm text-foreground leading-relaxed">
-                    <div>
-                      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Scene</span>
-                      <p className="mt-1">{scene.scene}</p>
+                    {/* Body */}
+                    <div className="space-y-3 rounded-lg bg-secondary p-4 text-sm text-foreground leading-relaxed">
+                      <div>
+                        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Scene</span>
+                        <p className="mt-1">{prompt.scene}</p>
+                      </div>
+                      <div>
+                        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Action</span>
+                        <p className="mt-1">{prompt.action}</p>
+                      </div>
+                      <div>
+                        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Dialogue</span>
+                        <p className="mt-1">{prompt.audio.dialogue}</p>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Action</span>
-                      <p className="mt-1">{scene.action}</p>
-                    </div>
-                    <div>
-                      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Dialogue</span>
-                      <p className="mt-1">{scene.audio.dialogue}</p>
-                    </div>
-                  </div>
 
-                  {/* Char counter */}
-                  <div className="mt-3 flex justify-end">
-                    <span className={`text-xs font-medium ${valid ? 'text-green-500' : 'text-destructive'}`}>
-                      {charCount} / 140-220 chars
-                    </span>
+                    {/* Char counter */}
+                    <div className="mt-3 flex justify-end">
+                      <span className={`text-xs font-medium ${valid ? 'text-green-500' : 'text-destructive'}`}>
+                        {charCount} / {MIN_CHARS}-{MAX_CHARS} chars
+                      </span>
+                    </div>
                   </div>
-                </div>
-              );
-            })
+                );
+              })}
+            </TooltipProvider>
           )}
         </div>
       </div>
