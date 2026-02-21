@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAvatarStore } from '@/stores/avatar-store';
 import type { Gender } from '@/lib/avatar-config';
 import { User, Sparkles } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const GenderCard = ({
   gender,
@@ -46,6 +47,7 @@ const Index = () => {
           <Sparkles className="h-6 w-6 text-accent-foreground" />
           <span className="text-lg font-bold font-display text-foreground">Avatar Creator</span>
         </div>
+        <ThemeToggle />
       </header>
 
       {/* Hero */}
