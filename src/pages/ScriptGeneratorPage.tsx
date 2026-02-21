@@ -56,10 +56,10 @@ const scenePool = [
 const dialoguesByRole: Record<string, { intro: string[]; dev: string[]; cta: string[] }> = {
   profissional: {
     intro: [
-      'Tava revisando minha rotina de cuidados essa semana e percebi como esse produto mudou meu padrão de resultados nos últimos meses',
-      'Quero compartilhar uma análise honesta sobre um produto que incorporei na rotina e que trouxe dados bem consistentes até agora',
-      'Hoje quero falar sobre algo que testei metodicamente por semanas e que realmente entregou o que a formulação prometia entregar',
-      'Resolvi documentar minha experiência porque os resultados foram relevantes o suficiente pra merecer uma avaliação detalhada e séria',
+      'Esse produto aqui entrega firmeza real na pele desde as primeiras aplicações, a formulação é concentrada e a absorção é rápida demais',
+      'Esse sérum trouxe uniformidade pro meu tom de pele em poucas semanas, a concentração ativa faz diferença visível no dia a dia',
+      'Esse produto estabiliza a pele de um jeito que nenhum outro conseguiu, hidratação profunda sem peso e com resultado mensurável',
+      'Esse sérum aqui resolveu a textura irregular da minha pele, um passo só na rotina e já percebi evolução consistente',
     ],
     dev: [
       'A textura absorve em segundos sem deixar resíduo, o que facilita muito pra quem tem rotina apertada pela manhã toda',
@@ -80,10 +80,10 @@ const dialoguesByRole: Record<string, { intro: string[]; dev: string[]; cta: str
   },
   casual: {
     intro: [
-      'Tava arrumando minhas coisas agora e lembrei que preciso te contar sobre uma mudança que fiz na minha rotina recente',
-      'Então gente, deixa eu contar uma parada que aconteceu desde que comecei a testar um negócio novo na rotina aqui',
-      'Olha, eu nem ia gravar sobre isso mas aí acordei hoje com a pele tão boa que precisei vir falar aqui',
-      'Sabe quando você acha um produto que simplesmente encaixa na rotina sem drama nenhum? Pois é, preciso contar isso',
+      'Esse produto aqui virou meu favorito porque ele deixa a pele macia e uniforme logo nos primeiros dias, muito fácil de usar',
+      'Esse sérum me surpreendeu real porque traz luminosidade rápida sem ficar pesado e encaixa perfeito na rotina do dia a dia',
+      'Esse produto aqui resolveu pra mim aquela textura chatinha na pele, um passo só e já dá pra ver diferença rápido',
+      'Esse sérum aqui é bom demais gente, a pele fica hidratada o dia inteiro sem oleosidade e a textura melhora muito',
     ],
     dev: [
       'A textura é leve demais, parece que não tem nada na pele mas você sente a diferença no toque ao longo do dia',
@@ -104,10 +104,10 @@ const dialoguesByRole: Record<string, { intro: string[]; dev: string[]; cta: str
   },
   engracado: {
     intro: [
-      'Meu marido perguntou se eu troquei de rosto essa semana, falei que não amor é só rotina nova e ele ficou confuso',
-      'Acordei bonita hoje e levei um susto honesto, fui investigar o que mudou e lembrei do produto novo na rotina',
-      'Comprei um negócio novo e minha colega jurou que eu fiz procedimento, gente é só um produto calma aí pelo amor',
-      'Minha mãe ligou preocupada achando que eu gastei fortunas no dermatologista, tive que explicar que foi um produto só',
+      'Esse produto aqui fez minha pele ficar tão boa que meu marido achou que eu troquei de rosto durante a semana',
+      'Esse sérum deixou minha pele tão bonita que minha colega jurou que fiz procedimento, calma gente é um produto só',
+      'Esse produto fez minha mãe ligar preocupada achando que gastei fortunas no dermatologista, mas é só um passo na rotina',
+      'Esse sérum aqui deixa a pele tão boa que acordo bonita e levo susto, e olha que isso não é fácil',
     ],
     dev: [
       'O engraçado é que a textura é tão leve que eu achei que não ia fazer nada, aí a pele resolveu me surpreender',
@@ -128,10 +128,10 @@ const dialoguesByRole: Record<string, { intro: string[]; dev: string[]; cta: str
   },
   urgente: {
     intro: [
-      'Preciso te contar isso agora porque descobri algo que mudou minha rotina em poucos dias e não dá pra guardar',
-      'Para tudo e presta atenção porque o que eu vou te contar agora pode mudar como você cuida da sua pele',
-      'Não costumo gravar com pressa mas precisei vir aqui correndo te falar sobre o que aconteceu essa semana comigo',
-      'Escuta rápido porque isso é importante, descobri um produto que entrega resultado visível muito mais rápido do que eu esperava',
+      'Esse produto aqui entrega resultado visível em poucos dias, absorção imediata e a pele já muda de textura rapidamente',
+      'Esse sérum age rápido demais, em três dias a textura da pele já mudou e o toque ficou completamente diferente',
+      'Esse produto aqui não demora meses pra funcionar, em semanas você já percebe a evolução clara e consistente na pele',
+      'Esse sérum entrega resultado desde a primeira semana, a pele responde rápido e você sente a diferença no toque diário',
     ],
     dev: [
       'Em três dias a textura da pele já mudou, não é exagero é cronômetro, fiquei de queixo caído com a velocidade',
@@ -152,10 +152,10 @@ const dialoguesByRole: Record<string, { intro: string[]; dev: string[]; cta: str
   },
   educativo: {
     intro: [
-      'Quero explicar hoje por que escolhi esse produto específico, fui atrás da composição antes de começar a usar de fato',
-      'Resolvi estudar os ingredientes ativos desse produto e o que encontrei me convenceu a testar com expectativa fundamentada',
-      'Antes de indicar qualquer coisa eu pesquiso bastante, e hoje quero te mostrar o que descobri sobre essa formulação aqui',
-      'Vou te explicar tecnicamente o que esse produto faz na pele porque entender o mecanismo ajuda a ter expectativa real',
+      'Esse produto tem concentração ativa na faixa ideal segundo estudos, a formulação respeita a barreira cutânea e entrega resultado real',
+      'Esse sérum combina niacinamida e ácido hialurônico em sinergia, hidrata sem oleosidade e uniformiza o tom de forma funcional',
+      'Esse produto tem pH calibrado pra otimizar a penetração dos ativos, cada ingrediente está ali com dosagem funcional precisa',
+      'Esse sérum usa tecnologia de liberação prolongada que mantém os ativos trabalhando por horas, diferente de fórmulas convencionais',
     ],
     dev: [
       'A concentração do ativo principal está na faixa ideal segundo estudos recentes, nem abaixo do eficaz nem acima do seguro',
@@ -176,10 +176,10 @@ const dialoguesByRole: Record<string, { intro: string[]; dev: string[]; cta: str
   },
   inspirador: {
     intro: [
-      'Hoje quero falar sobre uma escolha pequena que fiz por mim mesma e que mudou como me sinto todos os dias',
-      'Cuidar de si não precisa ser complicado, às vezes um passo novo na rotina já transforma a forma como você se vê',
-      'Decidi priorizar meu bem-estar de verdade, não só falar sobre isso, e comecei com algo simples na rotina diária',
-      'Tem dias que a gente precisa de um lembrete de que merece cuidado, pra mim esse produto virou esse lembrete',
+      'Esse produto aqui mudou como eu me sinto toda manhã, a pele ficou mais bonita e minha confiança subiu junto com ela',
+      'Esse sérum virou meu ritual de cuidado diário, dois minutos que transformam minha pele e mudam o tom do meu dia',
+      'Esse produto me fez gostar mais do que vejo no espelho, a pele ficou confortável e isso mudou minha atitude toda',
+      'Esse sérum trouxe uma leveza pra minha rotina que reflete na pele e na forma como me trato todos os dias',
     ],
     dev: [
       'A sensação de olhar no espelho e gostar do que vê é transformadora, e começou com uma mudança simples na rotina',
