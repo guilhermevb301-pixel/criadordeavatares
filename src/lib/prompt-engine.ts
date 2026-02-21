@@ -68,9 +68,14 @@ export function generatePrompt(state: AvatarState): string {
   const framingClause = framing ? `${framing} depicting ${subject}` : `depicting ${subject}`;
   sections.push(`${opener}, ${framingClause}`);
 
+  // 1b. Attached photo reference
+  if (state.useAttachedPhoto) {
+    sections.push('use the attached photo as the base reference for the character');
+  }
+
   // 2. Celebrity reference (if any)
   if (state.celebrityRef && state.celebrityRef.trim()) {
-    sections.push(`inspired by the visual vibe of ${state.celebrityRef.trim()}, without replicating exact likeness`);
+    sections.push(`the character must look exactly like ${state.celebrityRef.trim()}, replicating their facial features, bone structure, and overall appearance as closely as possible`);
   }
 
   // 3. Appearance (skin, eyes, hair)

@@ -21,6 +21,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import { User, Shirt, MapPin, Move, Camera, Smile, Sun, Aperture, Ratio, ImagePlus, Palette } from 'lucide-react';
 import OptionGrid from '@/components/builder/OptionGrid';
 import PromptPreview from '@/components/builder/PromptPreview';
@@ -111,6 +112,24 @@ const VisualStyleSelector = ({
   </div>
 );
 
+const AttachedPhotoToggle = ({
+  checked,
+  onChange,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) => (
+  <div className="mb-4 rounded-xl border border-border bg-card p-4 shadow-card">
+    <div className="flex items-center justify-between">
+      <div>
+        <span className="text-sm font-medium text-card-foreground">📸 Vou anexar uma foto de referência</span>
+        <p className="text-xs text-muted-foreground mt-0.5">Ative se você vai enviar uma foto junto com o prompt</p>
+      </div>
+      <Switch checked={checked} onCheckedChange={onChange} />
+    </div>
+  </div>
+);
+
 const CelebrityRefInput = ({
   value,
   onChange,
@@ -120,12 +139,12 @@ const CelebrityRefInput = ({
 }) => (
   <div className="mb-4 rounded-xl border border-border bg-card p-4 shadow-card">
     <label className="block text-sm font-medium text-card-foreground mb-2">
-      🌟 Quer se inspirar em alguém famoso? <span className="text-muted-foreground font-normal">(opcional)</span>
+      🌟 Quer copiar o visual de alguém? <span className="text-muted-foreground font-normal">(opcional)</span>
     </label>
     <Input
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      placeholder="Ex: Angelina Jolie, Keanu Reeves…"
+      placeholder="Ex: Goku, Naruto, Angelina Jolie, Keanu Reeves..."
     />
   </div>
 );
@@ -272,6 +291,12 @@ const AvatarBuilderPage = () => {
             <VisualStyleSelector
               selected={state.visualStyle}
               onSelect={setVisualStyle}
+            />
+
+            {/* Attached Photo Toggle */}
+            <AttachedPhotoToggle
+              checked={state.useAttachedPhoto}
+              onChange={(v) => updateField('useAttachedPhoto', v)}
             />
 
             {/* Celebrity Reference */}
