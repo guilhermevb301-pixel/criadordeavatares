@@ -1,118 +1,91 @@
 
-## Refatoracao para Arquitetura Multi-Page com Sidebar
 
-### Resumo
+## Reescrita: Gerador de Cenas UGC
 
-Reorganizar a aplicacao em 4 paginas com navegacao lateral fixa, mantendo todas as funcionalidades existentes e melhorando a experiencia visual com mais espacamento e hierarquia.
+Reescrita completa de `src/pages/ScriptGeneratorPage.tsx`, removendo toda logica de roteiros (ScriptResult, hook/body/cta) e substituindo por um gerador de cenas independentes para video.
 
 ---
 
-### Estrutura de Rotas
+### Arquivo afetado
+
+`src/pages/ScriptGeneratorPage.tsx` -- reescrita completa.
+
+---
+
+### Modelo de dados
 
 ```text
-/              -> Dashboard (novo)
-/avatar        -> Criar Avatar Realista (builder atual reorganizado)
-/avatar/edit   -> Editar Avatar Existente (tab atual vira sub-rota)
-/roteiros      -> Gerar Roteiros UGC (novo)
-/configuracoes -> Configuracoes (placeholder)
+interface UGCScene {
+  id: number
+  angle: string
+  scene: string
+  action: string
+  audio: {
+    dialogue: string
+  }
+}
 ```
 
----
+### Pool de angulos
 
-### Novos Arquivos
+```text
+const anglePool = [
+  'Close-up frontal',
+  'Medium shot lateral',
+  'Over-the-shoulder',
+  'Wide shot ambiente',
+  'Low angle',
+  'High angle',
+  'POV camera'
+]
+```
 
-1. **`src/components/layout/AppSidebar.tsx`**
-   - Sidebar fixa a esquerda com icones + labels
-   - Links: Dashboard, Criar Avatar, Roteiros UGC, Configuracoes
-   - Destaque visual no item ativo (usando `useLocation`)
-   - Logo/brand no topo
-   - ThemeToggle no rodape da sidebar
-   - Responsivo: colapsavel em mobile (hamburger menu)
+### Funcao generateScenes
 
-2. **`src/components/layout/AppLayout.tsx`**
-   - Layout wrapper com sidebar + area de conteudo principal
-   - Usa `<Outlet />` do react-router para renderizar paginas filhas
-   - Transicoes suaves entre paginas (CSS transitions com fade/slide)
+- Recebe produto, nicho, publico, tom, qty
+- Embaralha o pool de angulos; se qty > 7, reinicia o pool embaralhado
+- Gera dialogos naturais entre 140-220 caracteres, sem emojis, hashtags, "Hook", "CTA"
+- Tom influencia o estilo do dialogo (ex: casual = giriass informais, profissional = vocabulario tecnico)
+- Cada cena recebe scene (descricao de enquadramento/ambiente), action (movimentos/expressoes), e audio.dialogue
 
-3. **`src/pages/Dashboard.tsx`**
-   - 4 cards grandes centralizados em grid 2x2:
-     - "Criar Avatar Realista" (icone User + Sparkles) -> navega para /avatar
-     - "Gerar Roteiros UGC" (icone FileText) -> navega para /roteiros
-     - "Producao de Video" (icone Video) -> placeholder/coming soon
-     - "Configuracoes" (icone Settings) -> navega para /configuracoes
-   - Cards com hover elevado, icones grandes, descricao curta
-   - Layout minimalista e premium
+### Funcoes auxiliares
 
-4. **`src/pages/AvatarBuilderPage.tsx`**
-   - Refatoracao do `BuilderPage.tsx` atual
-   - Remove header proprio (sidebar cuida da navegacao)
-   - Mantem selecao de genero inline (se genero nao selecionado, mostra cards de selecao)
-   - Layout 2 colunas:
-     - Esquerda: accordions de configuracao (como esta)
-     - Direita: area de preview maior com prompt gerado + secao "Referencias Visuais" abaixo
-   - Secao "Referencias Visuais": area com placeholders para upload/exibicao de imagens de inspiracao
-   - Toggle "Novo Avatar" / "Editar Existente" vira sub-navegacao interna ou rotas separadas
+- **handleRegenerate(sceneId)** -- gera uma nova cena com angulo aleatorio e substitui apenas aquela no array
+- **handleCopyJSON(scene)** -- copia JSON formatado sem id e sem angle:
+  ```text
+  { "scene": "...", "action": "...", "audio": { "dialogue": "..." } }
+  ```
+- Bloqueia copia se dialogue estiver fora de 140-220 caracteres
 
-5. **`src/pages/ScriptGeneratorPage.tsx`**
-   - Pagina nova para geracao de roteiros UGC
-   - Formulario com inputs:
-     - Produto (text input)
-     - Nicho (text input ou select)
-     - Publico-alvo (text input)
-     - Tom do Avatar (select: profissional, casual, engraçado, etc.)
-     - Quantidade de videos (number input / slider 1-10)
-   - Botao central grande "Gerar Roteiros"
-   - Area de resultados: cards individuais por roteiro com conteudo em formato texto
-   - Contador de caracteres em cada card
-   - Nota: geracao sera placeholder por enquanto (sem IA conectada), mostrando estrutura de output
+### Alteracoes de UI
 
-6. **`src/pages/SettingsPage.tsx`**
-   - Pagina placeholder com titulo e descricao
-   - Secoes futuras: Perfil, Preferencias, Plano
+| Elemento | Antes | Depois |
+|----------|-------|--------|
+| Titulo | Gerar Roteiros UGC | Gerador de Cenas UGC |
+| Descricao | Crie scripts persuasivos... | Gere cenas independentes prontas para producao de video |
+| Botao | Gerar Roteiros | Gerar Cenas |
+| Estado vazio | Nenhum roteiro gerado | Nenhuma cena gerada |
+| Import icons | FileText, Sparkles, Copy, Check | + RefreshCw (para regenerar) |
 
----
+### Cards de resultado
 
-### Arquivos Modificados
+Cada card contem:
 
-1. **`src/App.tsx`**
-   - Reestruturar rotas com layout aninhado:
-     ```text
-     <Route element={<AppLayout />}>
-       <Route path="/" element={<Dashboard />} />
-       <Route path="/avatar" element={<AvatarBuilderPage />} />
-       <Route path="/roteiros" element={<ScriptGeneratorPage />} />
-       <Route path="/configuracoes" element={<SettingsPage />} />
-     </Route>
-     ```
+1. **Header**: "Cena {n}" + Badge com o angulo (ex: "Close-up frontal")
+2. **Corpo** dividido em 3 secoes visuais com labels:
+   - **Scene** -- texto descritivo
+   - **Action** -- movimentos e expressoes
+   - **Dialogue** -- fala natural
+3. **Contador de caracteres** do dialogue com cor condicional:
+   - Verde (140-220 chars)
+   - Vermelho (fora do intervalo)
+4. **Botao Copiar JSON** -- desabilitado se dialogue fora do intervalo
+5. **Botao Regenerar** -- icone RefreshCw, regenera apenas aquela cena
 
-2. **`src/pages/BuilderPage.tsx`**
-   - Renomear/refatorar para `AvatarBuilderPage.tsx`
-   - Remover header duplicado (sidebar lida com navegacao)
-   - Manter toda logica de builder intacta
-   - Integrar selecao de genero como passo inicial inline
-   - Adicionar secao "Referencias Visuais" na coluna direita abaixo do prompt preview
+### O que permanece igual
 
-3. **`src/pages/Index.tsx`**
-   - Sera substituido pelo Dashboard
-   - Selecao de genero movida para dentro da pagina de avatar
+- Layout 2 colunas (form esquerda, resultados direita)
+- Formulario com os 5 inputs (produto, nicho, publico, tom, quantidade)
+- toneOptions array
+- Animacoes de entrada nos cards (animate-in fade-in slide-in-from-bottom-2)
 
----
-
-### Detalhes da Sidebar
-
-- Largura: ~240px em desktop, colapsavel a icones (~64px) em tablet, drawer em mobile
-- Icones usados (lucide-react): `LayoutDashboard`, `UserCircle`, `FileText`, `Video`, `Settings`
-- Fundo: usa tokens `sidebar-background`, `sidebar-foreground` ja definidos no CSS
-- Item ativo: destaque com `sidebar-accent` + borda lateral ou fundo diferenciado
-- Separador visual entre grupos de itens
-
-### Design Visual
-
-- Cards do dashboard: `rounded-2xl`, padding generoso (p-8 a p-10), sombra `shadow-card` com hover `shadow-card-hover` e `hover:-translate-y-1`
-- Mais espacamento geral: `gap-6` entre blocos, padding `p-6` a `p-8` nas areas de conteudo
-- Manter identidade escura atual com tokens semanticos
-- Transicoes entre paginas: CSS `animate-in fade-in` do tailwindcss-animate (ja instalado)
-
-### Nota sobre Framer Motion
-
-O projeto nao tem Framer Motion instalado. Transicoes serao feitas com `tailwindcss-animate` (ja disponivel) usando classes como `animate-in`, `fade-in`, `slide-in-from-left` para manter o bundle leve. Se o resultado nao for satisfatorio, Framer Motion pode ser adicionado depois.
