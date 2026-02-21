@@ -1,13 +1,11 @@
 import { useState } from 'react';
-import { editActions, type EditAction } from '@/lib/avatar-config';
-import { generateEditPrompt } from '@/lib/prompt-engine';
+import { editActions } from '@/lib/avatar-config';
+import { generateEditInstructions } from '@/lib/prompt-engine';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Copy, Check, Wand2 } from 'lucide-react';
 import OptionGrid from './OptionGrid';
 
 const EditTab = () => {
-  const [originalPrompt, setOriginalPrompt] = useState('');
   const [selectedActions, setSelectedActions] = useState<Record<string, string | boolean>>({});
   const [copied, setCopied] = useState(false);
 
@@ -37,7 +35,7 @@ const EditTab = () => {
       return a.promptPrefix;
     });
 
-  const editPrompt = originalPrompt ? generateEditPrompt(originalPrompt, changes) : '';
+  const editPrompt = generateEditInstructions(changes);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(editPrompt);
@@ -51,62 +49,50 @@ const EditTab = () => {
         <div>
           <h1 className="text-2xl font-bold font-display text-foreground">Editar Avatar Existente</h1>
           <p className="text-sm text-muted-foreground">
-            Cole seu prompt original e escolha as modificações desejadas
+            Escolha as modificações desejadas
           </p>
         </div>
 
-        <div>
-          <label className="text-sm font-medium text-foreground mb-1.5 block">Prompt Original</label>
-          <Textarea
-            value={originalPrompt}
-            onChange={(e) => setOriginalPrompt(e.target.value)}
-            placeholder="Cole aqui o prompt que deseja modificar..."
-            className="min-h-[120px] bg-card"
-          />
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <Wand2 className="h-4 w-4 text-accent-foreground" />
+            Modificações Disponíveis
+          </h3>
+          {editActions.map((action) => {
+            const isActive = !!selectedActions[action.id];
+            return (
+              <div key={action.id} className="rounded-xl border border-border bg-card p-3 shadow-card">
+                <button
+                  onClick={() => !action.hasSubOptions && toggleAction(action.id)}
+                  className={`w-full text-left text-sm font-medium transition-colors ${
+                    isActive ? 'text-accent-foreground' : 'text-card-foreground'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`h-4 w-4 rounded border transition-colors flex items-center justify-center ${
+                        isActive ? 'border-accent bg-accent' : 'border-border'
+                      }`}
+                    >
+                      {isActive && <Check className="h-3 w-3 text-accent-foreground" />}
+                    </div>
+                    {action.label}
+                  </div>
+                </button>
+                {action.hasSubOptions && action.subOptions && (
+                  <div className="mt-2 pl-6">
+                    <OptionGrid
+                      options={action.subOptions}
+                      selected={typeof selectedActions[action.id] === 'string' ? [selectedActions[action.id] as string] : []}
+                      onSelect={(id) => toggleAction(action.id, id)}
+                      multi={false}
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
-
-        {originalPrompt && (
-          <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-              <Wand2 className="h-4 w-4 text-accent-foreground" />
-              Modificações Disponíveis
-            </h3>
-            {editActions.map((action) => {
-              const isActive = !!selectedActions[action.id];
-              return (
-                <div key={action.id} className="rounded-xl border border-border bg-card p-3 shadow-card">
-                  <button
-                    onClick={() => !action.hasSubOptions && toggleAction(action.id)}
-                    className={`w-full text-left text-sm font-medium transition-colors ${
-                      isActive ? 'text-accent-foreground' : 'text-card-foreground'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`h-4 w-4 rounded border transition-colors flex items-center justify-center ${
-                          isActive ? 'border-accent bg-accent' : 'border-border'
-                        }`}
-                      >
-                        {isActive && <Check className="h-3 w-3 text-accent-foreground" />}
-                      </div>
-                      {action.label}
-                    </div>
-                  </button>
-                  {action.hasSubOptions && action.subOptions && (
-                    <div className="mt-2 pl-6">
-                      <OptionGrid
-                        options={action.subOptions}
-                        selected={typeof selectedActions[action.id] === 'string' ? [selectedActions[action.id] as string] : []}
-                        onSelect={(id) => toggleAction(action.id, id)}
-                        multi={false}
-                      />
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
       </div>
 
       {/* Preview Column */}
@@ -117,10 +103,10 @@ const EditTab = () => {
               Prompt de Modificação
             </h3>
             <p className="mb-4 text-xs text-muted-foreground">
-              Inglês — cole no gerador de imagem junto ao prompt original
+              Cole este prompt junto com o original no gerador de imagem
             </p>
             <div className="mb-4 rounded-lg bg-secondary p-4 text-sm text-foreground leading-relaxed min-h-[120px]">
-              {editPrompt || 'Cole um prompt e selecione modificações para gerar o resultado...'}
+              {editPrompt || 'Selecione modificações para gerar o prompt...'}
             </div>
             <Button onClick={handleCopy} disabled={!editPrompt} className="w-full">
               {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}

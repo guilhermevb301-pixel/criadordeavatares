@@ -109,8 +109,7 @@ export function generatePrompt(state: AvatarState): string {
   return sections.join('; ') + '.';
 }
 
-export function generateEditPrompt(originalPrompt: string, changes: string[]): string {
-  if (changes.length === 0) return originalPrompt;
-
-  return `Modify the original image described as: "${originalPrompt}". Changes: ${changes.join('. ')}. Keep all other attributes unchanged.`;
+export function generateEditInstructions(changes: string[]): string {
+  if (changes.length === 0) return '';
+  return `${changes.join('. ')}. Keep all other attributes unchanged.`;
 }
