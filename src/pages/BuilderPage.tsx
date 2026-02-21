@@ -12,7 +12,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
-import { Sparkles, Copy, Check, ArrowLeft, User, Shirt, MapPin, Move, Camera, Smile, Sun, Aperture } from 'lucide-react';
+import { Sparkles, Copy, Check, ArrowLeft, User, Shirt, MapPin, Move, Camera, Smile, Sun, Aperture, Ratio } from 'lucide-react';
 import OptionGrid from '@/components/builder/OptionGrid';
 import PromptPreview from '@/components/builder/PromptPreview';
 import EditTab from '@/components/builder/EditTab';
@@ -26,6 +26,7 @@ const iconMap: Record<string, React.ReactNode> = {
   Smile: <Smile className="h-4 w-4" />,
   Sun: <Sun className="h-4 w-4" />,
   Aperture: <Aperture className="h-4 w-4" />,
+  RatioIcon: <Ratio className="h-4 w-4" />,
 };
 
 const BuilderPage = () => {
@@ -105,6 +106,12 @@ const BuilderPage = () => {
       case 'photoStyle': {
         const block = blocks.find(b => b.id === 'photoStyle');
         const l = block?.options?.find(o => o.id === state.photoStyle)?.label;
+        if (l) tags.push(l);
+        break;
+      }
+      case 'aspectRatio': {
+        const block = blocks.find(b => b.id === 'aspectRatio');
+        const l = block?.options?.find(o => o.id === state.aspectRatio)?.label;
         if (l) tags.push(l);
         break;
       }

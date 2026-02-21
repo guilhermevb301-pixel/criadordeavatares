@@ -151,6 +151,15 @@ const photoStyles: OptionItem[] = [
   { id: 'high-fashion', label: 'Alta Moda', promptValue: 'high fashion photography with dramatic styling' },
 ];
 
+const aspectRatios: OptionItem[] = [
+  { id: '1-1', label: '1:1 Quadrado', promptValue: '1:1 square aspect ratio' },
+  { id: '4-5', label: '4:5 Instagram', promptValue: '4:5 vertical aspect ratio' },
+  { id: '9-16', label: '9:16 Stories', promptValue: '9:16 vertical portrait aspect ratio' },
+  { id: '16-9', label: '16:9 Widescreen', promptValue: '16:9 widescreen horizontal aspect ratio' },
+  { id: '3-4', label: '3:4 Retrato', promptValue: '3:4 classic portrait aspect ratio' },
+  { id: '2-3', label: '2:3 Pinterest', promptValue: '2:3 tall portrait aspect ratio' },
+];
+
 const clothingMale: OptionItem[] = [
   { id: 'tshirt', label: 'Camiseta', promptValue: 'wearing a casual t-shirt' },
   { id: 'polo', label: 'Polo', promptValue: 'wearing a polo shirt' },
@@ -245,6 +254,14 @@ export const getBuilderBlocks = (gender: Gender): BuilderBlock[] => [
     selectionType: 'single',
     options: photoStyles,
   },
+  {
+    id: 'aspectRatio',
+    title: 'Proporção da Imagem',
+    icon: 'RatioIcon',
+    description: 'Proporção e formato da imagem final',
+    selectionType: 'single',
+    options: aspectRatios,
+  },
 ];
 
 // Sub-options for compound blocks
@@ -279,6 +296,7 @@ export interface AvatarState {
   expression: string;
   lighting: string;
   photoStyle: string;
+  aspectRatio: string;
 }
 
 export const defaultAvatarState: Omit<AvatarState, 'gender'> = {
@@ -296,6 +314,7 @@ export const defaultAvatarState: Omit<AvatarState, 'gender'> = {
   expression: '',
   lighting: '',
   photoStyle: '',
+  aspectRatio: '',
 };
 
 // ─── Edit Actions ───

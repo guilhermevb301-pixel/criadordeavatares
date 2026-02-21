@@ -1,4 +1,5 @@
 // Prompt Engine: transforms AvatarState into an optimized English prompt
+// Editorial paragraph style — single fluid block with semicolons and commas
 
 import {
   type AvatarState,
@@ -29,20 +30,22 @@ function ageDescriptor(age: number, gender: Gender): string {
 
 export function generatePrompt(state: AvatarState): string {
   const blocks = getBuilderBlocks(state.gender);
-  const parts: string[] = [];
+  const sections: string[] = [];
 
-  // 1. Subject
-  parts.push(`Photorealistic portrait of ${ageDescriptor(state.age, state.gender)}`);
+  // 1. Framing + Subject opener
+  const framing = findOption(cameraSubBlocks.framing.options, state.cameraFraming);
+  const subject = ageDescriptor(state.age, state.gender);
+  const framingClause = framing ? `${framing} depicting ${subject}` : `depicting ${subject}`;
+  sections.push(`Ultra-photorealistic professional portrait, ${framingClause}`);
 
-  // 2. Appearance
+  // 2. Appearance (skin, eyes, hair) as "with" clause
   const skin = findOption(appearanceSubBlocks.skinTone.options, state.skinTone);
   const eyes = findOption(appearanceSubBlocks.eyeColor.options, state.eyeColor);
   const hairColor = findOption(appearanceSubBlocks.hairColor.options, state.hairColor);
   const hairType = findOption(appearanceSubBlocks.hairType.options, state.hairType);
-
   const appearanceParts = [skin, eyes, hairColor, hairType].filter(Boolean);
   if (appearanceParts.length > 0) {
-    parts.push(`with ${appearanceParts.join(', ')}`);
+    sections.push(`the subject has ${appearanceParts.join(', ')}`);
   }
 
   // 3. Features
@@ -50,7 +53,7 @@ export function generatePrompt(state: AvatarState): string {
     .map(f => findOption(appearanceSubBlocks.features.options, f))
     .filter(Boolean);
   if (featureDescs.length > 0) {
-    parts.push(featureDescs.join(', '));
+    sections.push(featureDescs.join(', '));
   }
 
   // 4. Clothing
@@ -60,41 +63,50 @@ export function generatePrompt(state: AvatarState): string {
       .map(c => findOption(clothingBlock.options || [], c))
       .filter(Boolean);
     if (clothingDescs.length > 0) {
-      parts.push(clothingDescs.join(', '));
+      sections.push(clothingDescs.join(' layered with '));
     }
   }
 
-  // 5. Pose
-  const pose = findOption(blocks.find(b => b.id === 'pose')?.options || [], state.pose);
-  if (pose) parts.push(pose);
-
-  // 6. Camera
-  const angle = findOption(cameraSubBlocks.angle.options, state.cameraAngle);
-  const framing = findOption(cameraSubBlocks.framing.options, state.cameraFraming);
-  if (framing) parts.push(framing);
-  if (angle) parts.push(angle);
-
-  // 7. Expression
+  // 5. Expression
   const expr = findOption(blocks.find(b => b.id === 'expression')?.options || [], state.expression);
-  if (expr) parts.push(expr);
+  if (expr) sections.push(`expression is ${expr.replace(/^with a /i, '').replace(/expression$/i, '').trim()}, maintaining direct eye contact with the camera`);
 
-  // 8. Lighting
-  const light = findOption(blocks.find(b => b.id === 'lighting')?.options || [], state.lighting);
-  if (light) parts.push(light);
+  // 6. Pose
+  const pose = findOption(blocks.find(b => b.id === 'pose')?.options || [], state.pose);
+  if (pose) sections.push(`posture ${pose}`);
 
-  // 9. Environment
+  // 7. Camera angle
+  const angle = findOption(cameraSubBlocks.angle.options, state.cameraAngle);
+  if (angle) sections.push(angle);
+
+  // 8. Environment
   const envBlock = blocks.find(b => b.id === 'environment');
   const env = findOption(envBlock?.options || [], state.environment || 'modern-living');
-  if (env) parts.push(env);
+  if (env) sections.push(`environment is ${env.replace(/^in /i, '').replace(/^at /i, '').replace(/^on /i, '')}`);
 
-  // 10. Photo Style
+  // 9. Lighting
+  const light = findOption(blocks.find(b => b.id === 'lighting')?.options || [], state.lighting);
+  if (light) sections.push(`lighting is ${light.replace(/lighting$/i, '').trim()}, creating dimensional contrast with soft shadow transitions and realistic color spill across the skin while preserving natural tones`);
+
+  // 10. Skin realism block
+  sections.push('skin rendered hyper-realistically with visible pores, micro-imperfections, natural redness, and zero smoothing or beautification');
+
+  // 11. Photo style / camera look
   const style = findOption(blocks.find(b => b.id === 'photoStyle')?.options || [], state.photoStyle);
-  if (style) parts.push(style);
+  if (style) {
+    sections.push(`camera look is premium ${style}, razor-sharp focus on the eyes, natural color balance, no HDR, no over-sharpening, no stylization`);
+  }
 
-  // 11. Finishing modifiers
-  parts.push('ultra-detailed, photorealistic, 8K resolution, professional photography');
+  // 12. Aspect ratio
+  if (state.aspectRatio) {
+    const ar = findOption(blocks.find(b => b.id === 'aspectRatio')?.options || [], state.aspectRatio);
+    if (ar) sections.push(ar);
+  }
 
-  return parts.join('. ') + '.';
+  // 13. Finishing modifiers
+  sections.push('the final image must look like a real, high-budget photograph captured in-camera, fully photorealistic, authentic, and human, with no text, no logos, no branding, no CGI look, and no AI artifacts');
+
+  return sections.join('; ') + '.';
 }
 
 export function generateEditPrompt(originalPrompt: string, changes: string[]): string {
