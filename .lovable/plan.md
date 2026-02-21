@@ -1,8 +1,26 @@
 
 
-## Reescrita: Gerador de Cenas UGC
+## Correcao Completa: Prompts Separados com Continuidade Narrativa
 
-Reescrita completa de `src/pages/ScriptGeneratorPage.tsx`, removendo toda logica de roteiros (ScriptResult, hook/body/cta) e substituindo por um gerador de cenas independentes para video.
+### Resumo da Mudanca
+
+O modelo atual gera N cenas independentes (cada uma com scene, action e dialogue diferentes). O novo modelo gera UMA cena fixa (scene + action) e N prompts separados com dialogos sequenciais que formam uma narrativa continua.
+
+---
+
+### Mudanca Conceitual
+
+```text
+ANTES:
+  Cena 1 -> scene A, action A, dialogue A
+  Cena 2 -> scene B, action B, dialogue B
+  Cena 3 -> scene C, action C, dialogue C
+
+DEPOIS:
+  Prompt 1 -> scene FIXA, action FIXA, dialogue parte 1
+  Prompt 2 -> scene FIXA, action FIXA, dialogue parte 2
+  Prompt 3 -> scene FIXA, action FIXA, dialogue parte 3
+```
 
 ---
 
@@ -12,80 +30,120 @@ Reescrita completa de `src/pages/ScriptGeneratorPage.tsx`, removendo toda logica
 
 ---
 
-### Modelo de dados
+### Novo campo no formulario: Tipo de Acao (Range)
+
+Adicionar um Select entre "Tom do Avatar" e "Quantidade de videos" com as opcoes:
+
+| Valor | Label | Action gerada |
+|-------|-------|---------------|
+| `parado` | Parado | Gesticula levemente com as maos enquanto fala, olha direto para a camera com expressao natural |
+| `produto` | Com produto | Segura o produto na altura do peito, gesticula com uma mao enquanto apresenta com a outra |
+| `pessoa` | Com pessoa | Gesticula em direcao a pessoa ao lado enquanto fala, alterna o olhar entre a camera e o interlocutor |
+
+A action sera fixa por cena, determinada pelo range selecionado.
+
+---
+
+### Novo modelo de dados
 
 ```text
-interface UGCScene {
-  id: number
-  angle: string
-  scene: string
-  action: string
+interface UGCPrompt {
+  id: number          // 1, 2, 3...
+  scene: string       // FIXA para todos os prompts
+  action: string      // FIXA para todos os prompts (baseada no range)
   audio: {
-    dialogue: string
+    dialogue: string  // 120-160 caracteres, parte da narrativa
   }
 }
 ```
 
-### Pool de angulos
+Remover a interface UGCScene e o campo angle (nao mais necessario).
 
+---
+
+### Nova logica de geracao
+
+**generatePrompts(produto, nicho, publico, tom, range, qty)**
+
+1. Seleciona UMA scene aleatoria do pool (fixa para todos)
+2. Define UMA action baseada no range selecionado (fixa para todos)
+3. Gera qty dialogos sequenciais do pool de dialogos para o tom selecionado
+4. Os dialogos sao selecionados em ordem do pool (sem repeticao) para garantir continuidade narrativa
+5. Cada dialogo: 120-160 caracteres, sem emojis, sem hashtags
+
+**Pool de dialogos**: Reescrever os dialogos existentes para que cada grupo de tom tenha frases que funcionam como partes sequenciais de uma narrativa (parte 1 introduz, parte 2 desenvolve, parte 3 aprofunda, parte 4 conclui).
+
+---
+
+### Regras de regeneracao
+
+**handleRegenerate(promptId)**:
+
+- Se regenerar Prompt 1: regenera TODOS os prompts (1, 2, 3...) pois a narrativa inteira depende do inicio
+- Se regenerar Prompt 2+: regenera do prompt clicado ate o final (ex: regenerar 2 atualiza 2, 3, 4)
+- Scene e action NUNCA mudam na regeneracao
+- Apenas os dialogos sao substituidos, mantendo continuidade
+
+Exibir tooltip explicativo: "Regenerar este prompt tambem atualizara os seguintes para manter a continuidade"
+
+---
+
+### Validacao de caracteres
+
+- Intervalo valido: 120-160 caracteres (atualizado de 140-220)
+- Contador de caracteres em cada card
+- Verde: dentro do intervalo
+- Vermelho: fora do intervalo
+- Botao "Copiar JSON" desabilitado se fora do intervalo
+
+---
+
+### UI dos resultados
+
+Cada card exibe:
+
+**Header**: "Prompt 1", "Prompt 2", etc. (sem badge de angulo)
+
+**Corpo**: 3 secoes (Scene, Action, Dialogue) -- scene e action serao iguais em todos os cards
+
+**Rodape**: Contador de caracteres + botoes Copiar JSON e Regenerar
+
+**JSON copiado** (formato exato):
 ```text
-const anglePool = [
-  'Close-up frontal',
-  'Medium shot lateral',
-  'Over-the-shoulder',
-  'Wide shot ambiente',
-  'Low angle',
-  'High angle',
-  'POV camera'
-]
+{
+  "scene": "...",
+  "action": "...",
+  "audio": {
+    "dialogue": "..."
+  }
+}
 ```
 
-### Funcao generateScenes
+---
 
-- Recebe produto, nicho, publico, tom, qty
-- Embaralha o pool de angulos; se qty > 7, reinicia o pool embaralhado
-- Gera dialogos naturais entre 140-220 caracteres, sem emojis, hashtags, "Hook", "CTA"
-- Tom influencia o estilo do dialogo (ex: casual = giriass informais, profissional = vocabulario tecnico)
-- Cada cena recebe scene (descricao de enquadramento/ambiente), action (movimentos/expressoes), e audio.dialogue
+### Alteracoes no formulario
 
-### Funcoes auxiliares
+| Campo | Mudanca |
+|-------|---------|
+| Produto | Sem mudanca |
+| Nicho | Sem mudanca |
+| Publico-alvo | Sem mudanca |
+| Tom do Avatar | Sem mudanca |
+| **Tipo de Acao** | **NOVO** -- Select com opcoes: Parado, Com produto, Com pessoa |
+| Quantidade de videos | Label muda para "Quantidade de prompts" |
 
-- **handleRegenerate(sceneId)** -- gera uma nova cena com angulo aleatorio e substitui apenas aquela no array
-- **handleCopyJSON(scene)** -- copia JSON formatado sem id e sem angle:
-  ```text
-  { "scene": "...", "action": "...", "audio": { "dialogue": "..." } }
-  ```
-- Bloqueia copia se dialogue estiver fora de 140-220 caracteres
+**Botao**: permanece "Gerar Cenas"
 
-### Alteracoes de UI
+**Titulo da pagina**: permanece "Gerador de Cenas UGC"
 
-| Elemento | Antes | Depois |
-|----------|-------|--------|
-| Titulo | Gerar Roteiros UGC | Gerador de Cenas UGC |
-| Descricao | Crie scripts persuasivos... | Gere cenas independentes prontas para producao de video |
-| Botao | Gerar Roteiros | Gerar Cenas |
-| Estado vazio | Nenhum roteiro gerado | Nenhuma cena gerada |
-| Import icons | FileText, Sparkles, Copy, Check | + RefreshCw (para regenerar) |
+---
 
-### Cards de resultado
+### Secao tecnica: Pool de dialogos sequenciais
 
-Cada card contem:
+Os dialogos existentes serao reorganizados em grupos de 4-5 frases que formam narrativas sequenciais. Exemplo para tom "casual":
 
-1. **Header**: "Cena {n}" + Badge com o angulo (ex: "Close-up frontal")
-2. **Corpo** dividido em 3 secoes visuais com labels:
-   - **Scene** -- texto descritivo
-   - **Action** -- movimentos e expressoes
-   - **Dialogue** -- fala natural
-3. **Contador de caracteres** do dialogue com cor condicional:
-   - Verde (140-220 chars)
-   - Vermelho (fora do intervalo)
-4. **Botao Copiar JSON** -- desabilitado se dialogue fora do intervalo
-5. **Botao Regenerar** -- icone RefreshCw, regenera apenas aquela cena
+- Grupo 1: (1) "Gente, eu nao acreditei quando vi..." (2) "Tava mega cetica no comeco..." (3) "Olha, vou ser sincera..." (4) "Nao e publi nao..."
+- Grupo 2: (1) "Sabe aquele produto que voce descobre..." (2) "Minha amiga me indicou..." (3) "Comecei a usar meio desacreditada..." (4) "Se alguem me perguntasse..."
 
-### O que permanece igual
-
-- Layout 2 colunas (form esquerda, resultados direita)
-- Formulario com os 5 inputs (produto, nicho, publico, tom, quantidade)
-- toneOptions array
-- Animacoes de entrada nos cards (animate-in fade-in slide-in-from-bottom-2)
+A funcao seleciona um grupo aleatorio e distribui as partes em ordem.
 
