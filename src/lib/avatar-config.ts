@@ -327,6 +327,7 @@ export interface AvatarState {
   celebrityRef: string;
   thematicEnvironment: string;
   customThematicEnv: string;
+  useAttachedPhoto: boolean;
 }
 
 export const defaultAvatarState: Omit<AvatarState, 'gender'> = {
@@ -349,6 +350,7 @@ export const defaultAvatarState: Omit<AvatarState, 'gender'> = {
   celebrityRef: '',
   thematicEnvironment: '',
   customThematicEnv: '',
+  useAttachedPhoto: false,
 };
 
 // ─── Edit Actions ───
