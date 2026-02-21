@@ -1,149 +1,105 @@
 
 
-## Correcao Completa: Prompts Separados com Continuidade Narrativa
+## Atualizacao do Gerador de Cenas UGC -- Narrativa Estruturada + Acoes Variadas
 
-### Resumo da Mudanca
+### Problema atual
 
-O modelo atual gera N cenas independentes (cada uma com scene, action e dialogue diferentes). O novo modelo gera UMA cena fixa (scene + action) e N prompts separados com dialogos sequenciais que formam uma narrativa continua.
+Os dialogos sao genericos, repetitivos e sem estrutura narrativa real. A action e fixa para todos os prompts. Os dialogos usam cliches como "eu nao acreditei", "minha amiga me indicou", etc.
 
 ---
 
-### Mudanca Conceitual
+### O que muda
 
-```text
-ANTES:
-  Cena 1 -> scene A, action A, dialogue A
-  Cena 2 -> scene B, action B, dialogue B
-  Cena 3 -> scene C, action C, dialogue C
+**1. Estrutura narrativa fixa por posicao**
 
-DEPOIS:
-  Prompt 1 -> scene FIXA, action FIXA, dialogue parte 1
-  Prompt 2 -> scene FIXA, action FIXA, dialogue parte 2
-  Prompt 3 -> scene FIXA, action FIXA, dialogue parte 3
-```
+Cada prompt recebe um papel narrativo baseado na sua posicao:
+
+- Prompt 1 = Introducao (por que a pessoa esta falando, primeira impressao, situacao do dia a dia)
+- Prompts do meio = Desenvolvimento (beneficios reais, sensacoes, experiencias especificas)
+- Ultimo prompt = CTA natural ("deixei o link aqui embaixo", "se quiser testar, ta ai o link")
+
+Quando qty = 1, o prompt combina introducao + CTA.
+Quando qty = 2, prompt 1 = introducao, prompt 2 = CTA.
+
+**2. Actions variadas e minimalistas**
+
+A action deixa de ser fixa e passa a variar entre os prompts, usando um pool de movimentos suaves:
+
+- Passa o produto de uma mao para a outra
+- Levanta o frasco brevemente para a camera
+- Abre a palma da mao enquanto explica
+- Gira levemente o frasco enquanto fala
+- Encosta o frasco de leve na bochecha
+- Ajusta o cabelo usando a mao que nao segura o produto
+- Inclina minimamente o corpo para enfatizar
+- Olha para baixo 1 segundo e volta para a camera
+- Segura o produto no colo e gesticula com as duas maos depois
+- Levanta a sobrancelha ao falar de um beneficio
+- Ri de leve e balanca o produto de forma natural
+
+Regras: nunca repetir action consecutiva, movimentos suaves, coerentes com o dialogo.
+
+O campo "Tipo de Acao" (range) no formulario sera REMOVIDO -- as actions agora sao sempre variadas e selecionadas automaticamente do pool.
+
+**3. Dialogos reescritos por completo**
+
+Todos os dialogos serao reescritos para seguir a estrutura narrativa. Cada tom tera grupos com:
+- Frases de introducao (indice 0)
+- Frases de desenvolvimento (indices 1-3)
+- Frases de CTA (indice 4)
+
+Frases PROIBIDAS removidas: "eu nao acreditei", "minha amiga me indicou", "comecei desacreditada", "spoiler nao era", "nao vivo mais sem", "entendi o hype".
+
+**4. Scene continua fixa** -- nao muda.
 
 ---
 
 ### Arquivo afetado
 
-`src/pages/ScriptGeneratorPage.tsx` -- reescrita completa.
+`src/pages/ScriptGeneratorPage.tsx` -- reescrita dos dados e logica, UI permanece igual.
 
 ---
 
-### Novo campo no formulario: Tipo de Acao (Range)
+### Detalhes tecnicos
 
-Adicionar um Select entre "Tom do Avatar" e "Quantidade de videos" com as opcoes:
-
-| Valor | Label | Action gerada |
-|-------|-------|---------------|
-| `parado` | Parado | Gesticula levemente com as maos enquanto fala, olha direto para a camera com expressao natural |
-| `produto` | Com produto | Segura o produto na altura do peito, gesticula com uma mao enquanto apresenta com a outra |
-| `pessoa` | Com pessoa | Gesticula em direcao a pessoa ao lado enquanto fala, alterna o olhar entre a camera e o interlocutor |
-
-A action sera fixa por cena, determinada pelo range selecionado.
-
----
-
-### Novo modelo de dados
+**Novo pool de actions** (substitui rangeOptions):
 
 ```text
-interface UGCPrompt {
-  id: number          // 1, 2, 3...
-  scene: string       // FIXA para todos os prompts
-  action: string      // FIXA para todos os prompts (baseada no range)
-  audio: {
-    dialogue: string  // 120-160 caracteres, parte da narrativa
-  }
-}
+const actionPool = [
+  'Passa o produto de uma mão para a outra enquanto fala naturalmente',
+  'Levanta o frasco brevemente na direção da câmera',
+  'Abre a palma da mão enquanto explica o ponto',
+  'Gira levemente o frasco enquanto fala',
+  'Encosta o frasco de leve na bochecha e sorri',
+  'Ajusta o cabelo com a mão livre enquanto continua falando',
+  'Inclina minimamente o corpo para frente ao enfatizar',
+  'Olha para baixo por um instante e volta para a câmera',
+  'Segura o produto no colo e gesticula com as duas mãos',
+  'Levanta a sobrancelha ao mencionar um benefício',
+  'Ri de leve e balança o produto de forma natural',
+]
 ```
 
-Remover a interface UGCScene e o campo angle (nao mais necessario).
+**Nova estrutura dos dialogos** -- Cada tom tera grupos organizados em 3 categorias:
 
----
-
-### Nova logica de geracao
-
-**generatePrompts(produto, nicho, publico, tom, range, qty)**
-
-1. Seleciona UMA scene aleatoria do pool (fixa para todos)
-2. Define UMA action baseada no range selecionado (fixa para todos)
-3. Gera qty dialogos sequenciais do pool de dialogos para o tom selecionado
-4. Os dialogos sao selecionados em ordem do pool (sem repeticao) para garantir continuidade narrativa
-5. Cada dialogo: 120-160 caracteres, sem emojis, sem hashtags
-
-**Pool de dialogos**: Reescrever os dialogos existentes para que cada grupo de tom tenha frases que funcionam como partes sequenciais de uma narrativa (parte 1 introduz, parte 2 desenvolve, parte 3 aprofunda, parte 4 conclui).
-
----
-
-### Regras de regeneracao
-
-**handleRegenerate(promptId)**:
-
-- Se regenerar Prompt 1: regenera TODOS os prompts (1, 2, 3...) pois a narrativa inteira depende do inicio
-- Se regenerar Prompt 2+: regenera do prompt clicado ate o final (ex: regenerar 2 atualiza 2, 3, 4)
-- Scene e action NUNCA mudam na regeneracao
-- Apenas os dialogos sao substituidos, mantendo continuidade
-
-Exibir tooltip explicativo: "Regenerar este prompt tambem atualizara os seguintes para manter a continuidade"
-
----
-
-### Validacao de caracteres
-
-- Intervalo valido: 120-160 caracteres (atualizado de 140-220)
-- Contador de caracteres em cada card
-- Verde: dentro do intervalo
-- Vermelho: fora do intervalo
-- Botao "Copiar JSON" desabilitado se fora do intervalo
-
----
-
-### UI dos resultados
-
-Cada card exibe:
-
-**Header**: "Prompt 1", "Prompt 2", etc. (sem badge de angulo)
-
-**Corpo**: 3 secoes (Scene, Action, Dialogue) -- scene e action serao iguais em todos os cards
-
-**Rodape**: Contador de caracteres + botoes Copiar JSON e Regenerar
-
-**JSON copiado** (formato exato):
 ```text
-{
-  "scene": "...",
-  "action": "...",
-  "audio": {
-    "dialogue": "..."
-  }
-}
+dialoguesByRole: Record<string, {
+  intro: string[]       // frases de introducao
+  dev: string[]         // frases de desenvolvimento
+  cta: string[]         // frases de CTA
+}>
 ```
 
----
+**generatePrompts atualizado**:
 
-### Alteracoes no formulario
+1. Seleciona scene aleatoria (fixa)
+2. Embaralha actionPool, distribui uma action diferente por prompt
+3. Para prompt 1: seleciona dialogo aleatorio de `intro`
+4. Para prompts do meio: seleciona dialogos sequenciais de `dev`
+5. Para ultimo prompt: seleciona dialogo aleatorio de `cta`
+6. Salva estado para regeneracao
 
-| Campo | Mudanca |
-|-------|---------|
-| Produto | Sem mudanca |
-| Nicho | Sem mudanca |
-| Publico-alvo | Sem mudanca |
-| Tom do Avatar | Sem mudanca |
-| **Tipo de Acao** | **NOVO** -- Select com opcoes: Parado, Com produto, Com pessoa |
-| Quantidade de videos | Label muda para "Quantidade de prompts" |
+**Remocao do campo Range do formulario** -- o Select "Tipo de Acao" sera removido, e `canGenerate` nao depende mais de `range`.
 
-**Botao**: permanece "Gerar Cenas"
-
-**Titulo da pagina**: permanece "Gerador de Cenas UGC"
-
----
-
-### Secao tecnica: Pool de dialogos sequenciais
-
-Os dialogos existentes serao reorganizados em grupos de 4-5 frases que formam narrativas sequenciais. Exemplo para tom "casual":
-
-- Grupo 1: (1) "Gente, eu nao acreditei quando vi..." (2) "Tava mega cetica no comeco..." (3) "Olha, vou ser sincera..." (4) "Nao e publi nao..."
-- Grupo 2: (1) "Sabe aquele produto que voce descobre..." (2) "Minha amiga me indicou..." (3) "Comecei a usar meio desacreditada..." (4) "Se alguem me perguntasse..."
-
-A funcao seleciona um grupo aleatorio e distribui as partes em ordem.
+**handleRegenerate** -- mesma logica cascata (regenera do prompt clicado em diante), mas agora respeita os papeis narrativos ao substituir dialogos.
 
