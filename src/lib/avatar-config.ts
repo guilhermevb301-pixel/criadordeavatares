@@ -280,6 +280,32 @@ export const cameraSubBlocks = {
 
 // ─── Avatar State ───
 
+export type VisualStyle = 'realistic' | 'cartoon' | 'anime' | 'low-poly' | 'watercolor' | 'pixel-art';
+
+export const visualStyles: OptionItem[] = [
+  { id: 'realistic', label: 'Realista', promptValue: 'Ultra-photorealistic professional portrait' },
+  { id: 'cartoon', label: 'Cartoon', promptValue: 'Colorful cartoon-style character illustration' },
+  { id: 'anime', label: 'Anime', promptValue: 'High quality anime-style character illustration' },
+  { id: 'low-poly', label: 'Low-Poly', promptValue: 'Low-poly 3D rendered character' },
+  { id: 'watercolor', label: 'Aquarela', promptValue: 'Watercolor painting style portrait' },
+  { id: 'pixel-art', label: 'Pixel Art', promptValue: '16-bit pixel art character in retro game style' },
+];
+
+export const thematicEnvironments: OptionItem[] = [
+  { id: 'neutral-stylized', label: 'Neutro estilizado', promptValue: 'in a stylized neutral background with soft colors' },
+  { id: 'anime-futuristic', label: 'Cidade futurista em anime', promptValue: 'in a futuristic anime city with neon lights and tall buildings' },
+  { id: 'anime-school', label: 'Escola japonesa em anime', promptValue: 'in a Japanese anime school hallway with cherry blossoms' },
+  { id: 'ninja-village', label: 'Vila ninja inspirada em Naruto', promptValue: 'in a stylized ninja village environment inspired by Naruto, wooden houses, banners, vibrant sky, anime background (not an exact copy of any specific scene)' },
+  { id: 'hero-academy', label: 'Academia de heróis shonen', promptValue: 'in a shonen-style hero academy training ground, inspired by anime (not an exact copy of any specific scene)' },
+  { id: 'rpg-fantasy', label: 'Mundo de RPG fantasia anime', promptValue: 'in an anime-style fantasy RPG world with castles and magical forests' },
+  { id: 'cartoon-city', label: 'Cidade colorida cartoon', promptValue: 'in a colorful cartoon city with exaggerated proportions and vibrant colors' },
+  { id: 'pixel-world', label: 'Mundo pixelado 16-bit', promptValue: 'in a 16-bit pixel art city street environment, simple blocky buildings, limited color palette, retro game vibe' },
+  { id: 'custom', label: 'Outro (texto livre)', promptValue: '' },
+];
+
+export const isThematicStyle = (style: string): boolean =>
+  ['cartoon', 'anime', 'pixel-art'].includes(style);
+
 export interface AvatarState {
   gender: Gender;
   age: number;
@@ -297,6 +323,10 @@ export interface AvatarState {
   lighting: string;
   photoStyle: string;
   aspectRatio: string;
+  visualStyle: VisualStyle;
+  celebrityRef: string;
+  thematicEnvironment: string;
+  customThematicEnv: string;
 }
 
 export const defaultAvatarState: Omit<AvatarState, 'gender'> = {
@@ -315,6 +345,10 @@ export const defaultAvatarState: Omit<AvatarState, 'gender'> = {
   lighting: '',
   photoStyle: '',
   aspectRatio: '',
+  visualStyle: 'realistic',
+  celebrityRef: '',
+  thematicEnvironment: '',
+  customThematicEnv: '',
 };
 
 // ─── Edit Actions ───
