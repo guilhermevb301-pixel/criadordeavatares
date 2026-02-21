@@ -1,7 +1,17 @@
 import { useMemo, useState } from 'react';
 import { useAvatarStore } from '@/stores/avatar-store';
 import { generatePrompt } from '@/lib/prompt-engine';
-import { getBuilderBlocks, appearanceSubBlocks, cameraSubBlocks, type AvatarState, type Gender } from '@/lib/avatar-config';
+import {
+  getBuilderBlocks,
+  appearanceSubBlocks,
+  cameraSubBlocks,
+  visualStyles,
+  thematicEnvironments,
+  isThematicStyle,
+  type AvatarState,
+  type Gender,
+  type VisualStyle,
+} from '@/lib/avatar-config';
 import {
   Accordion,
   AccordionContent,
@@ -10,7 +20,8 @@ import {
 } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
-import { User, Shirt, MapPin, Move, Camera, Smile, Sun, Aperture, Ratio, ImagePlus } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { User, Shirt, MapPin, Move, Camera, Smile, Sun, Aperture, Ratio, ImagePlus, Palette } from 'lucide-react';
 import OptionGrid from '@/components/builder/OptionGrid';
 import PromptPreview from '@/components/builder/PromptPreview';
 import EditTab from '@/components/builder/EditTab';
@@ -70,11 +81,63 @@ const VisualReferences = () => (
   </div>
 );
 
+const VisualStyleSelector = ({
+  selected,
+  onSelect,
+}: {
+  selected: string;
+  onSelect: (style: VisualStyle) => void;
+}) => (
+  <div className="mb-4 rounded-xl border border-border bg-card p-4 shadow-card">
+    <div className="flex items-center gap-2 mb-3">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-secondary text-muted-foreground">
+        <Palette className="h-4 w-4" />
+      </div>
+      <span className="text-sm font-semibold text-card-foreground">Estilo Visual</span>
+    </div>
+    <div className="flex flex-wrap gap-2">
+      {visualStyles.map((style) => (
+        <button
+          key={style.id}
+          onClick={() => onSelect(style.id as VisualStyle)}
+          className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all duration-200 ${
+            selected === style.id
+              ? 'bg-accent text-accent-foreground shadow-sm'
+              : 'bg-secondary text-muted-foreground hover:bg-secondary/80 hover:text-foreground'
+          }`}
+        >
+          {style.label}
+        </button>
+      ))}
+    </div>
+  </div>
+);
+
+const CelebrityRefInput = ({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) => (
+  <div className="mb-4 rounded-xl border border-border bg-card p-4 shadow-card">
+    <label className="block text-sm font-medium text-card-foreground mb-2">
+      Quer se inspirar em alguém famoso? <span className="text-muted-foreground font-normal">(opcional)</span>
+    </label>
+    <Input
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder="Ex: Angelina Jolie, Keanu Reeves…"
+    />
+  </div>
+);
+
 const AvatarBuilderPage = () => {
-  const { gender, state, updateField, toggleMultiField, setGender } = useAvatarStore();
+  const { gender, state, updateField, toggleMultiField, setGender, setVisualStyle } = useAvatarStore();
   const [activeTab, setActiveTab] = useState<'builder' | 'edit'>('builder');
 
   const blocks = useMemo(() => (gender ? getBuilderBlocks(gender) : []), [gender]);
+  const isThematic = isThematicStyle(state.visualStyle);
 
   const fullState: AvatarState | null = useMemo(
     () => (gender ? { ...state, gender } : null),
@@ -109,9 +172,15 @@ const AvatarBuilderPage = () => {
         });
         break;
       case 'environment': {
-        const block = blocks.find(b => b.id === 'environment');
-        const l = block?.options?.find(o => o.id === state.environment)?.label;
-        if (l) tags.push(l);
+        if (isThematic) {
+          const l = thematicEnvironments.find(o => o.id === state.thematicEnvironment)?.label;
+          if (l) tags.push(l);
+          if (state.thematicEnvironment === 'custom' && state.customThematicEnv) tags.push(state.customThematicEnv);
+        } else {
+          const block = blocks.find(b => b.id === 'environment');
+          const l = block?.options?.find(o => o.id === state.environment)?.label;
+          if (l) tags.push(l);
+        }
         break;
       }
       case 'pose': {
@@ -200,6 +269,18 @@ const AvatarBuilderPage = () => {
               </h1>
               <p className="text-sm text-muted-foreground mt-1">Personalize cada detalhe do seu avatar</p>
             </div>
+
+            {/* Visual Style */}
+            <VisualStyleSelector
+              selected={state.visualStyle}
+              onSelect={setVisualStyle}
+            />
+
+            {/* Celebrity Reference */}
+            <CelebrityRefInput
+              value={state.celebrityRef}
+              onChange={(v) => updateField('celebrityRef', v)}
+            />
 
             {/* Age Slider */}
             <div className="mb-4 rounded-xl border border-border bg-card p-4 shadow-card">
@@ -296,6 +377,37 @@ const AvatarBuilderPage = () => {
                             </div>
                           ))}
                         </div>
+                      ) : block.id === 'environment' ? (
+                        // Conditional environment rendering
+                        isThematic ? (
+                          <div className="space-y-4">
+                            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                              Ambiente Temático
+                            </h4>
+                            <OptionGrid
+                              options={thematicEnvironments}
+                              selected={state.thematicEnvironment ? [state.thematicEnvironment] : []}
+                              onSelect={(id) => updateField('thematicEnvironment', id)}
+                              multi={false}
+                            />
+                            {state.thematicEnvironment === 'custom' && (
+                              <div className="mt-3">
+                                <Input
+                                  value={state.customThematicEnv}
+                                  onChange={(e) => updateField('customThematicEnv', e.target.value)}
+                                  placeholder="Descreva o ambiente desejado..."
+                                />
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <OptionGrid
+                            options={block.options || []}
+                            selected={state.environment ? [state.environment] : []}
+                            onSelect={(id) => updateField('environment', id)}
+                            multi={false}
+                          />
+                        )
                       ) : (
                         <OptionGrid
                           options={block.options || []}
