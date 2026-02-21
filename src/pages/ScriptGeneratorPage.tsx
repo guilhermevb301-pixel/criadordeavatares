@@ -8,12 +8,12 @@ import { FileText, Sparkles, Copy, Check, RefreshCw } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const toneOptions = [
-  { id: 'profissional', label: 'Profissional' },
-  { id: 'casual', label: 'Casual' },
-  { id: 'engracado', label: 'Engraçado' },
-  { id: 'urgente', label: 'Urgente' },
-  { id: 'educativo', label: 'Educativo' },
-  { id: 'inspirador', label: 'Inspirador' },
+  { id: 'profissional', label: '💼 Profissional' },
+  { id: 'casual', label: '😎 Casual' },
+  { id: 'engracado', label: '😂 Engraçado' },
+  { id: 'urgente', label: '🔥 Urgente' },
+  { id: 'educativo', label: '📚 Educativo' },
+  { id: 'inspirador', label: '💡 Inspirador' },
 ];
 
 const actionPool = [
@@ -354,10 +354,10 @@ const ScriptGeneratorPage = () => {
     <div className="flex flex-1 flex-col p-6 md:p-8">
       <div className="mb-6">
         <h1 className="text-2xl font-bold font-display text-foreground md:text-3xl">
-          Gerador de Cenas UGC
+          📝 Gerador de Cenas UGC
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Gere cenas independentes prontas para produção de vídeo
+          Gere cenas independentes prontas para produção de vídeo 🎬
         </p>
       </div>
 
@@ -366,19 +366,19 @@ const ScriptGeneratorPage = () => {
         <div className="space-y-5">
           <div className="rounded-2xl border border-border bg-card p-6 shadow-card space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="produto">Produto</Label>
+              <Label htmlFor="produto">🏷️ Produto</Label>
               <Input id="produto" placeholder="Ex: Sérum facial anti-idade" value={produto} onChange={(e) => setProduto(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="nicho">Nicho</Label>
+              <Label htmlFor="nicho">🎯 Nicho</Label>
               <Input id="nicho" placeholder="Ex: Skincare, Fitness, Tech" value={nicho} onChange={(e) => setNicho(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="publico">Público-alvo</Label>
+              <Label htmlFor="publico">👥 Público-alvo</Label>
               <Input id="publico" placeholder="Ex: Mulheres 25-35 anos" value={publico} onChange={(e) => setPublico(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Tom do Avatar</Label>
+              <Label>🎭 Tom do Avatar</Label>
               <Select value={tom} onValueChange={setTom}>
                 <SelectTrigger><SelectValue placeholder="Selecione o tom" /></SelectTrigger>
                 <SelectContent>
@@ -390,13 +390,13 @@ const ScriptGeneratorPage = () => {
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label>Quantidade de prompts</Label>
+                <Label>🔢 Quantidade de prompts</Label>
                 <span className="text-sm font-semibold text-accent-foreground">{qty}</span>
               </div>
               <Slider value={[qty]} onValueChange={(v) => setQty(v[0])} min={1} max={10} step={1} />
             </div>
             <Button onClick={handleGenerate} disabled={!canGenerate} className="w-full" size="lg">
-              <Sparkles className="h-4 w-4 mr-2" />
+              <span className="mr-2">🚀</span>
               Gerar Cenas
             </Button>
           </div>
@@ -406,9 +406,9 @@ const ScriptGeneratorPage = () => {
         <div className="space-y-4">
           {results.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/50 p-12 text-center">
-              <FileText className="h-12 w-12 text-muted-foreground/40 mb-4" />
+              <span className="text-5xl mb-4">📋</span>
               <h3 className="text-lg font-semibold font-display text-muted-foreground">Nenhuma cena gerada</h3>
-              <p className="text-sm text-muted-foreground mt-1">Preencha o formulário e clique em "Gerar Cenas"</p>
+              <p className="text-sm text-muted-foreground mt-1">Preencha o formulário e clique em "Gerar Cenas" ✨</p>
             </div>
           ) : (
             <TooltipProvider>
@@ -440,15 +440,15 @@ const ScriptGeneratorPage = () => {
                     {/* Body */}
                     <div className="space-y-3 rounded-lg bg-secondary p-4 text-sm text-foreground leading-relaxed">
                       <div>
-                        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Scene</span>
+                        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">🎥 Scene</span>
                         <p className="mt-1">{prompt.scene}</p>
                       </div>
                       <div>
-                        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Action</span>
+                        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">🎬 Action</span>
                         <p className="mt-1">{prompt.action}</p>
                       </div>
                       <div>
-                        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Dialogue</span>
+                        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">🗣️ Dialogue</span>
                         <p className="mt-1">{prompt.audio.dialogue}</p>
                       </div>
                     </div>

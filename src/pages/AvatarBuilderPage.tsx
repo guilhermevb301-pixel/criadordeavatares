@@ -40,8 +40,8 @@ const iconMap: Record<string, React.ReactNode> = {
 
 const GenderSelection = ({ onSelect }: { onSelect: (g: Gender) => void }) => (
   <div className="flex flex-1 flex-col items-center justify-center p-8">
-    <h2 className="mb-2 text-2xl font-bold font-display text-foreground">Escolha o Gênero</h2>
-    <p className="mb-8 text-sm text-muted-foreground">Selecione para começar a construir seu avatar</p>
+    <h2 className="mb-2 text-2xl font-bold font-display text-foreground">Escolha o Gênero 🎭</h2>
+    <p className="mb-8 text-sm text-muted-foreground">Selecione para começar a construir seu avatar ✨</p>
     <div className="flex flex-col gap-6 sm:flex-row">
       {(['masculino', 'feminino'] as const).map((g) => (
         <button
@@ -50,7 +50,7 @@ const GenderSelection = ({ onSelect }: { onSelect: (g: Gender) => void }) => (
           className="group flex flex-col items-center gap-4 rounded-2xl border border-border bg-card p-8 shadow-card transition-all duration-300 hover:shadow-card-hover hover:-translate-y-1 hover:border-accent focus:outline-none focus:ring-2 focus:ring-ring"
         >
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-secondary transition-colors group-hover:bg-accent group-hover:text-accent-foreground">
-            <User className="h-8 w-8" />
+            <span className="text-3xl">{g === 'masculino' ? '👨' : '👩'}</span>
           </div>
           <span className="text-lg font-semibold font-display text-card-foreground capitalize">{g}</span>
         </button>
@@ -62,7 +62,7 @@ const GenderSelection = ({ onSelect }: { onSelect: (g: Gender) => void }) => (
 const VisualReferences = () => (
   <div className="rounded-xl border border-dashed border-border bg-card/50 p-5">
     <h3 className="mb-3 text-sm font-semibold font-display text-card-foreground flex items-center gap-2">
-      <ImagePlus className="h-4 w-4 text-muted-foreground" />
+      🖼️ Referências Visuais
       Referências Visuais
     </h3>
     <div className="grid grid-cols-3 gap-3">
@@ -90,9 +90,7 @@ const VisualStyleSelector = ({
 }) => (
   <div className="mb-4 rounded-xl border border-border bg-card p-4 shadow-card">
     <div className="flex items-center gap-2 mb-3">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-secondary text-muted-foreground">
-        <Palette className="h-4 w-4" />
-      </div>
+      <span className="text-xl">🎨</span>
       <span className="text-sm font-semibold text-card-foreground">Estilo Visual</span>
     </div>
     <div className="flex flex-wrap gap-2">
@@ -122,7 +120,7 @@ const CelebrityRefInput = ({
 }) => (
   <div className="mb-4 rounded-xl border border-border bg-card p-4 shadow-card">
     <label className="block text-sm font-medium text-card-foreground mb-2">
-      Quer se inspirar em alguém famoso? <span className="text-muted-foreground font-normal">(opcional)</span>
+      🌟 Quer se inspirar em alguém famoso? <span className="text-muted-foreground font-normal">(opcional)</span>
     </label>
     <Input
       value={value}
@@ -265,9 +263,9 @@ const AvatarBuilderPage = () => {
           <div className="flex-1 overflow-y-auto p-6 lg:max-w-[55%]">
             <div className="mb-6">
               <h1 className="text-2xl font-bold font-display text-foreground">
-                Configurações do Avatar
+                🛠️ Configurações do Avatar
               </h1>
-              <p className="text-sm text-muted-foreground mt-1">Personalize cada detalhe do seu avatar</p>
+              <p className="text-sm text-muted-foreground mt-1">Personalize cada detalhe do seu avatar ✨</p>
             </div>
 
             {/* Visual Style */}

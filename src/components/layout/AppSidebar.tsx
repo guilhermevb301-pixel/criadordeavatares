@@ -16,11 +16,11 @@ import {
 } from '@/components/ui/sidebar';
 
 const navItems = [
-  { label: 'Dashboard', icon: LayoutDashboard, path: '/' },
-  { label: 'Criar Avatar', icon: UserCircle, path: '/avatar' },
-  { label: 'Roteiros UGC', icon: FileText, path: '/roteiros' },
-  { label: 'Produção de Vídeo', icon: Video, path: '/video', disabled: true },
-  { label: 'Configurações', icon: Settings, path: '/configuracoes' },
+  { label: 'Dashboard', icon: LayoutDashboard, path: '/', emoji: '🏠' },
+  { label: 'Criar Avatar', icon: UserCircle, path: '/avatar', emoji: '🎨' },
+  { label: 'Roteiros UGC', icon: FileText, path: '/roteiros', emoji: '📝' },
+  { label: 'Produção de Vídeo', icon: Video, path: '/video', disabled: true, emoji: '🎬' },
+  { label: 'Configurações', icon: Settings, path: '/configuracoes', emoji: '⚙️' },
 ];
 
 const AppSidebar = () => {
@@ -31,7 +31,7 @@ const AppSidebar = () => {
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
-          <Sparkles className="h-5 w-5 shrink-0 text-primary" />
+          <span className="text-xl shrink-0 group-data-[collapsible=icon]:text-lg">✨</span>
           <span className="font-bold font-display text-sidebar-foreground truncate group-data-[collapsible=icon]:hidden">
             Avatar Creator
           </span>
@@ -56,10 +56,10 @@ const AppSidebar = () => {
                       onClick={() => !item.disabled && navigate(item.path)}
                       className={item.disabled ? 'opacity-50 cursor-not-allowed' : ''}
                     >
-                      <item.icon className="h-4 w-4" />
+                      <span className="text-base">{item.emoji}</span>
                       <span>{item.label}</span>
                       {item.disabled && (
-                        <span className="ml-auto text-[10px] text-muted-foreground">Em breve</span>
+                        <span className="ml-auto text-[10px] text-muted-foreground">🔜</span>
                       )}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
