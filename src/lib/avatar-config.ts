@@ -328,6 +328,20 @@ export interface AvatarState {
   thematicEnvironment: string;
   customThematicEnv: string;
   useAttachedPhoto: boolean;
+  customClothing: string;
+  customEnvironment: string;
+  customPose: string;
+  customCameraAngle: string;
+  customCameraFraming: string;
+  customExpression: string;
+  customLighting: string;
+  customPhotoStyle: string;
+  customAspectRatio: string;
+  customSkinTone: string;
+  customEyeColor: string;
+  customHairColor: string;
+  customHairType: string;
+  customFeatures: string;
 }
 
 export const defaultAvatarState: Omit<AvatarState, 'gender'> = {
@@ -351,6 +365,20 @@ export const defaultAvatarState: Omit<AvatarState, 'gender'> = {
   thematicEnvironment: '',
   customThematicEnv: '',
   useAttachedPhoto: false,
+  customClothing: '',
+  customEnvironment: '',
+  customPose: '',
+  customCameraAngle: '',
+  customCameraFraming: '',
+  customExpression: '',
+  customLighting: '',
+  customPhotoStyle: '',
+  customAspectRatio: '',
+  customSkinTone: '',
+  customEyeColor: '',
+  customHairColor: '',
+  customHairType: '',
+  customFeatures: '',
 };
 
 // ─── Edit Actions ───

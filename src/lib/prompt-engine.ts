@@ -63,9 +63,11 @@ export function generatePrompt(state: AvatarState): string {
 
   // 1. Style opener + Framing + Subject
   const framing = findOption(cameraSubBlocks.framing.options, state.cameraFraming);
+  const framingCustom = state.customCameraFraming?.trim();
   const subject = ageDescriptor(state.age, state.gender);
   const opener = getStyleOpener(style);
-  const framingClause = framing ? `${framing} depicting ${subject}` : `depicting ${subject}`;
+  const framingParts = [framing, framingCustom].filter(Boolean);
+  const framingClause = framingParts.length > 0 ? `${framingParts.join(', ')} depicting ${subject}` : `depicting ${subject}`;
   sections.push(`${opener}, ${framingClause}`);
 
   // 1b. Attached photo reference
@@ -83,7 +85,7 @@ export function generatePrompt(state: AvatarState): string {
   const eyes = findOption(appearanceSubBlocks.eyeColor.options, state.eyeColor);
   const hairColor = findOption(appearanceSubBlocks.hairColor.options, state.hairColor);
   const hairType = findOption(appearanceSubBlocks.hairType.options, state.hairType);
-  const appearanceParts = [skin, eyes, hairColor, hairType].filter(Boolean);
+  const appearanceParts = [skin, state.customSkinTone, eyes, state.customEyeColor, hairColor, state.customHairColor, hairType, state.customHairType].filter(Boolean);
   if (appearanceParts.length > 0) {
     sections.push(`the subject has ${appearanceParts.join(', ')}`);
   }
@@ -92,16 +94,18 @@ export function generatePrompt(state: AvatarState): string {
   const featureDescs = state.features
     .map(f => findOption(appearanceSubBlocks.features.options, f))
     .filter(Boolean);
+  if (state.customFeatures?.trim()) featureDescs.push(state.customFeatures.trim());
   if (featureDescs.length > 0) {
     sections.push(featureDescs.join(', '));
   }
 
   // 5. Clothing
   const clothingBlock = blocks.find(b => b.id === 'clothing');
-  if (clothingBlock && state.clothing.length > 0) {
+  {
     const clothingDescs = state.clothing
-      .map(c => findOption(clothingBlock.options || [], c))
+      .map(c => findOption(clothingBlock?.options || [], c))
       .filter(Boolean);
+    if (state.customClothing?.trim()) clothingDescs.push(state.customClothing.trim());
     if (clothingDescs.length > 0) {
       sections.push(clothingDescs.join(' layered with '));
     }
@@ -109,20 +113,23 @@ export function generatePrompt(state: AvatarState): string {
 
   // 6. Expression
   const expr = findOption(blocks.find(b => b.id === 'expression')?.options || [], state.expression);
-  if (expr) sections.push(`expression is ${expr.replace(/^with a /i, '').replace(/expression$/i, '').trim()}, maintaining direct eye contact with the camera`);
+  const exprCustom = state.customExpression?.trim();
+  const exprParts = [expr ? `expression is ${expr.replace(/^with a /i, '').replace(/expression$/i, '').trim()}` : '', exprCustom].filter(Boolean);
+  if (exprParts.length > 0) sections.push(`${exprParts.join(', ')}, maintaining direct eye contact with the camera`);
 
   // 7. Pose
   const pose = findOption(blocks.find(b => b.id === 'pose')?.options || [], state.pose);
-  if (pose) sections.push(`posture ${pose}`);
+  const poseParts = [pose, state.customPose?.trim()].filter(Boolean);
+  if (poseParts.length > 0) sections.push(`posture ${poseParts.join(', ')}`);
 
   // 8. Camera angle
   const angle = findOption(cameraSubBlocks.angle.options, state.cameraAngle);
-  if (angle) sections.push(angle);
+  const angleParts = [angle, state.customCameraAngle?.trim()].filter(Boolean);
+  if (angleParts.length > 0) sections.push(angleParts.join(', '));
 
   // 9. Environment (conditional on style)
   if (isThematic) {
     if (state.thematicEnvironment === 'custom' && state.customThematicEnv?.trim()) {
-      // Style-prefixed custom environment
       const styleLabel = style === 'anime' ? 'anime-style' : style === 'cartoon' ? 'cartoon-style' : 'pixel art style';
       sections.push(`${styleLabel} character standing in ${state.customThematicEnv.trim()}`);
     } else if (state.thematicEnvironment) {
@@ -132,16 +139,20 @@ export function generatePrompt(state: AvatarState): string {
   } else {
     const envBlock = blocks.find(b => b.id === 'environment');
     const env = findOption(envBlock?.options || [], state.environment || 'modern-living');
-    if (env) sections.push(`environment is ${env.replace(/^in /i, '').replace(/^at /i, '').replace(/^on /i, '')}`);
+    const envParts = [env ? `environment is ${env.replace(/^in /i, '').replace(/^at /i, '').replace(/^on /i, '')}` : '', state.customEnvironment?.trim()].filter(Boolean);
+    if (envParts.length > 0) sections.push(envParts.join(', '));
   }
 
   // 10. Lighting
   const light = findOption(blocks.find(b => b.id === 'lighting')?.options || [], state.lighting);
-  if (light) {
+  const lightCustom = state.customLighting?.trim();
+  const lightParts = [light ? light.replace(/lighting$/i, '').trim() : '', lightCustom].filter(Boolean);
+  if (lightParts.length > 0) {
+    const lightDesc = lightParts.join(', ');
     if (isRealistic) {
-      sections.push(`lighting is ${light.replace(/lighting$/i, '').trim()}, creating dimensional contrast with soft shadow transitions and realistic color spill across the skin while preserving natural tones`);
+      sections.push(`lighting is ${lightDesc}, creating dimensional contrast with soft shadow transitions and realistic color spill across the skin while preserving natural tones`);
     } else {
-      sections.push(`lighting is ${light.replace(/lighting$/i, '').trim()}`);
+      sections.push(`lighting is ${lightDesc}`);
     }
   }
 
@@ -153,19 +164,23 @@ export function generatePrompt(state: AvatarState): string {
   // 12. Photo style / camera look (only for realistic/watercolor)
   if (isRealistic || style === 'watercolor') {
     const photoStyle = findOption(blocks.find(b => b.id === 'photoStyle')?.options || [], state.photoStyle);
-    if (photoStyle) {
+    const photoCustom = state.customPhotoStyle?.trim();
+    const photoParts = [photoStyle, photoCustom].filter(Boolean);
+    if (photoParts.length > 0) {
+      const photoDesc = photoParts.join(', ');
       if (isRealistic) {
-        sections.push(`camera look is premium ${photoStyle}, razor-sharp focus on the eyes, natural color balance, no HDR, no over-sharpening, no stylization`);
+        sections.push(`camera look is premium ${photoDesc}, razor-sharp focus on the eyes, natural color balance, no HDR, no over-sharpening, no stylization`);
       } else {
-        sections.push(`style reference: ${photoStyle}`);
+        sections.push(`style reference: ${photoDesc}`);
       }
     }
   }
 
   // 13. Aspect ratio
-  if (state.aspectRatio) {
+  {
     const ar = findOption(blocks.find(b => b.id === 'aspectRatio')?.options || [], state.aspectRatio);
-    if (ar) sections.push(ar);
+    const arParts = [ar, state.customAspectRatio?.trim()].filter(Boolean);
+    if (arParts.length > 0) sections.push(arParts.join(', '));
   }
 
   // 14. Finishing modifiers

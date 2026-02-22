@@ -358,47 +358,84 @@ const AvatarBuilderPage = () => {
                     <AccordionContent className="px-4 pb-4">
                       {block.id === 'appearance' ? (
                         <div className="space-y-4">
-                          {Object.entries(appearanceSubBlocks).map(([key, sub]) => (
-                            <div key={key}>
-                              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-                                {sub.title}
-                              </h4>
-                              <OptionGrid
-                                options={sub.options}
-                                selected={
-                                  sub.type === 'multi'
-                                    ? state[key as keyof typeof state] as string[]
-                                    : [state[key as keyof typeof state] as string]
-                                }
-                                onSelect={(id) => {
-                                  if (sub.type === 'multi') {
-                                    toggleMultiField(key as 'features', id);
-                                  } else {
-                                    updateField(key as keyof Omit<AvatarState, 'gender'>, id as any);
+                          {Object.entries(appearanceSubBlocks).map(([key, sub]) => {
+                            const customFieldMap: Record<string, keyof Omit<AvatarState, 'gender'>> = {
+                              skinTone: 'customSkinTone',
+                              eyeColor: 'customEyeColor',
+                              hairColor: 'customHairColor',
+                              hairType: 'customHairType',
+                              features: 'customFeatures',
+                            };
+                            const placeholderMap: Record<string, string> = {
+                              skinTone: '✏️ Ex: pele bronzeada com sardas...',
+                              eyeColor: '✏️ Ex: olhos heterocromicos verde e azul...',
+                              hairColor: '✏️ Ex: cabelo com mechas roxas...',
+                              hairType: '✏️ Ex: cabelo com trancas box braids...',
+                              features: '✏️ Ex: cicatriz no queixo, sobrancelha grossa...',
+                            };
+                            const customKey = customFieldMap[key];
+                            return (
+                              <div key={key}>
+                                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                                  {sub.title}
+                                </h4>
+                                <OptionGrid
+                                  options={sub.options}
+                                  selected={
+                                    sub.type === 'multi'
+                                      ? state[key as keyof typeof state] as string[]
+                                      : [state[key as keyof typeof state] as string]
                                   }
-                                }}
-                                multi={sub.type === 'multi'}
-                              />
-                            </div>
-                          ))}
+                                  onSelect={(id) => {
+                                    if (sub.type === 'multi') {
+                                      toggleMultiField(key as 'features', id);
+                                    } else {
+                                      updateField(key as keyof Omit<AvatarState, 'gender'>, id as any);
+                                    }
+                                  }}
+                                  multi={sub.type === 'multi'}
+                                />
+                                {customKey && (
+                                  <Input
+                                    value={state[customKey] as string}
+                                    onChange={(e) => updateField(customKey, e.target.value)}
+                                    placeholder={placeholderMap[key]}
+                                    className="mt-3"
+                                  />
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       ) : block.id === 'camera' ? (
                         <div className="space-y-4">
-                          {Object.entries(cameraSubBlocks).map(([key, sub]) => (
-                            <div key={key}>
-                              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-                                {sub.title}
-                              </h4>
-                              <OptionGrid
-                                options={sub.options}
-                                selected={[state[key === 'angle' ? 'cameraAngle' : 'cameraFraming'] as string]}
-                                onSelect={(id) =>
-                                  updateField(key === 'angle' ? 'cameraAngle' : 'cameraFraming', id as any)
-                                }
-                                multi={false}
-                              />
-                            </div>
-                          ))}
+                          {Object.entries(cameraSubBlocks).map(([key, sub]) => {
+                            const customKey = key === 'angle' ? 'customCameraAngle' : 'customCameraFraming';
+                            const placeholder = key === 'angle'
+                              ? '✏️ Ex: camera de drone vista aerea...'
+                              : '✏️ Ex: apenas o rosto bem proximo...';
+                            return (
+                              <div key={key}>
+                                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                                  {sub.title}
+                                </h4>
+                                <OptionGrid
+                                  options={sub.options}
+                                  selected={[state[key === 'angle' ? 'cameraAngle' : 'cameraFraming'] as string]}
+                                  onSelect={(id) =>
+                                    updateField(key === 'angle' ? 'cameraAngle' : 'cameraFraming', id as any)
+                                  }
+                                  multi={false}
+                                />
+                                <Input
+                                  value={state[customKey] as string}
+                                  onChange={(e) => updateField(customKey, e.target.value)}
+                                  placeholder={placeholder}
+                                  className="mt-3"
+                                />
+                              </div>
+                            );
+                          })}
                         </div>
                       ) : block.id === 'environment' ? (
                         // Conditional environment rendering
@@ -424,30 +461,60 @@ const AvatarBuilderPage = () => {
                             )}
                           </div>
                         ) : (
-                          <OptionGrid
-                            options={block.options || []}
-                            selected={state.environment ? [state.environment] : []}
-                            onSelect={(id) => updateField('environment', id)}
-                            multi={false}
-                          />
+                          <div>
+                            <OptionGrid
+                              options={block.options || []}
+                              selected={state.environment ? [state.environment] : []}
+                              onSelect={(id) => updateField('environment', id)}
+                              multi={false}
+                            />
+                            <Input
+                              value={state.customEnvironment}
+                              onChange={(e) => updateField('customEnvironment', e.target.value)}
+                              placeholder="✏️ Ex: em cima de um predio abandonado..."
+                              className="mt-3"
+                            />
+                          </div>
                         )
                       ) : (
-                        <OptionGrid
-                          options={block.options || []}
-                          selected={
-                            block.id === 'clothing'
-                              ? state.clothing
-                              : [state[block.id as keyof typeof state] as string]
-                          }
-                          onSelect={(id) => {
-                            if (block.id === 'clothing') {
-                              toggleMultiField('clothing', id);
-                            } else {
-                              updateField(block.id as keyof Omit<AvatarState, 'gender'>, id as any);
+                        <div>
+                          <OptionGrid
+                            options={block.options || []}
+                            selected={
+                              block.id === 'clothing'
+                                ? state.clothing
+                                : [state[block.id as keyof typeof state] as string]
                             }
-                          }}
-                          multi={block.id === 'clothing'}
-                        />
+                            onSelect={(id) => {
+                              if (block.id === 'clothing') {
+                                toggleMultiField('clothing', id);
+                              } else {
+                                updateField(block.id as keyof Omit<AvatarState, 'gender'>, id as any);
+                              }
+                            }}
+                            multi={block.id === 'clothing'}
+                          />
+                          {(() => {
+                            const customMap: Record<string, { key: keyof Omit<AvatarState, 'gender'>; placeholder: string }> = {
+                              clothing: { key: 'customClothing', placeholder: '✏️ Ex: blusa vermelha, terno azul marinho...' },
+                              pose: { key: 'customPose', placeholder: '✏️ Ex: sentado em uma cadeira de escritorio...' },
+                              expression: { key: 'customExpression', placeholder: '✏️ Ex: sorriso com os olhos fechados...' },
+                              lighting: { key: 'customLighting', placeholder: '✏️ Ex: luz roxa neon vindo da esquerda...' },
+                              photoStyle: { key: 'customPhotoStyle', placeholder: '✏️ Ex: foto com lente olho de peixe...' },
+                              aspectRatio: { key: 'customAspectRatio', placeholder: '✏️ Ex: formato panoramico ultra-wide...' },
+                            };
+                            const custom = customMap[block.id];
+                            if (!custom) return null;
+                            return (
+                              <Input
+                                value={state[custom.key] as string}
+                                onChange={(e) => updateField(custom.key, e.target.value)}
+                                placeholder={custom.placeholder}
+                                className="mt-3"
+                              />
+                            );
+                          })()}
+                        </div>
                       )}
                     </AccordionContent>
                   </AccordionItem>
