@@ -1,6 +1,8 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, UserCircle, FileText, Video, Settings, Sparkles } from 'lucide-react';
+import { LayoutDashboard, UserCircle, FileText, Video, Settings, LogOut } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { useAuth } from '@/hooks/useAuth';
+import { Badge } from '@/components/ui/badge';
 import {
   Sidebar,
   SidebarContent,
@@ -26,6 +28,12 @@ const navItems = [
 const AppSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, isAdmin, signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/login');
+  };
 
   return (
     <Sidebar collapsible="icon">
@@ -70,7 +78,22 @@ const AppSidebar = () => {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-3">
+      <SidebarFooter className="p-3 space-y-2">
+        {user && (
+          <div className="flex flex-col gap-1 group-data-[collapsible=icon]:hidden">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground truncate">{user.email}</span>
+              {isAdmin && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">👑 Admin</Badge>}
+            </div>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <LogOut className="h-3 w-3" />
+              Sair
+            </button>
+          </div>
+        )}
         <div className="flex items-center justify-center">
           <ThemeToggle />
         </div>
