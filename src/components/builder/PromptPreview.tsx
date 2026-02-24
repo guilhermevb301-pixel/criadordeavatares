@@ -33,17 +33,10 @@ const PromptPreview = ({ prompt, mobile }: PromptPreviewProps) => {
             <div className="mb-3 max-h-48 overflow-y-auto rounded-lg bg-secondary p-3 text-sm text-foreground leading-relaxed">
               {prompt}
             </div>
-            <div className="space-y-2">
-              <Button onClick={handleCopy} className="w-full" size="sm">
-                {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
-                {copied ? 'Copiado!' : 'Copiar Prompt'}
-              </Button>
-              <Button onClick={handleGenerate} className="w-full" size="sm" disabled={loading} variant="secondary">
-                {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Wand2 className="h-4 w-4 mr-2" />}
-                {loading ? 'Gerando...' : '🪄 Gerar Imagem com IA'}
-              </Button>
-            </div>
-            {imageUrl && <GeneratedImage imageUrl={imageUrl} onDownload={handleDownload} />}
+            <Button onClick={handleCopy} className="w-full" size="sm">
+              {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+              {copied ? 'Copiado!' : 'Copiar Prompt'}
+            </Button>
           </div>
         )}
         {!mobileOpen && (
@@ -71,17 +64,10 @@ const PromptPreview = ({ prompt, mobile }: PromptPreviewProps) => {
       <div className="mb-4 rounded-lg bg-secondary p-4 text-sm text-foreground leading-relaxed min-h-[120px] transition-all duration-300">
         {prompt}
       </div>
-      <div className="space-y-2">
-        <Button onClick={handleCopy} className="w-full" size="default">
-          {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
-          {copied ? 'Prompt Copiado!' : 'Copiar Prompt'}
-        </Button>
-        <Button onClick={handleGenerate} className="w-full" size="default" disabled={loading} variant="secondary">
-          {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Wand2 className="h-4 w-4 mr-2" />}
-          {loading ? 'Gerando imagem... ⏳' : '🪄 Gerar Imagem com IA'}
-        </Button>
-      </div>
-      {imageUrl && <GeneratedImage imageUrl={imageUrl} onDownload={handleDownload} />}
+      <Button onClick={handleCopy} className="w-full" size="default">
+        {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+        {copied ? 'Prompt Copiado!' : 'Copiar Prompt'}
+      </Button>
     </div>
   );
 };
