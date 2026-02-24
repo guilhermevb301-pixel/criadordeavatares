@@ -1,54 +1,20 @@
-import { useState, useEffect } from 'react';
-import { Copy, Check, ChevronUp, FileText, Wand2, Download, Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { Copy, Check, ChevronUp, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useImageGeneration } from '@/hooks/useImageGeneration';
-import { useToast } from '@/hooks/use-toast';
 
 interface PromptPreviewProps {
   prompt: string;
   mobile?: boolean;
 }
 
-const GeneratedImage = ({ imageUrl, onDownload }: { imageUrl: string; onDownload: () => void }) => (
-  <div className="mt-4 space-y-3">
-    <h4 className="text-sm font-semibold text-card-foreground">🖼️ Imagem Gerada</h4>
-    <img src={imageUrl} alt="Avatar gerado" className="w-full rounded-lg border border-border" />
-    <Button onClick={onDownload} variant="outline" className="w-full" size="sm">
-      <Download className="h-4 w-4 mr-2" />
-      Baixar Imagem
-    </Button>
-  </div>
-);
-
 const PromptPreview = ({ prompt, mobile }: PromptPreviewProps) => {
   const [copied, setCopied] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { generateImage, imageUrl, loading, error, reset } = useImageGeneration();
-  const { toast } = useToast();
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(prompt);
     setCopied(true);
     setTimeout(() => setCopied(false), 1600);
-  };
-
-  const handleGenerate = async () => {
-    reset();
-    await generateImage(prompt);
-  };
-
-  useEffect(() => {
-    if (error) {
-      toast({ title: '❌ Erro', description: error, variant: 'destructive' });
-    }
-  }, [error, toast]);
-
-  const handleDownload = () => {
-    if (!imageUrl) return;
-    const link = document.createElement('a');
-    link.href = imageUrl;
-    link.download = `avatar-${Date.now()}.png`;
-    link.click();
   };
 
   if (mobile) {
