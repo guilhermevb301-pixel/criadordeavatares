@@ -40,7 +40,7 @@ import {
   Ratio,
 } from 'lucide-react';
 import OptionGrid from '@/components/builder/OptionGrid';
-import AvatarPreview from '@/components/builder/AvatarPreview';
+import AvatarPromptCard from '@/components/builder/AvatarPromptCard';
 import EditTab from '@/components/builder/EditTab';
 
 const iconMap: Record<string, React.ReactNode> = {
