@@ -22,9 +22,9 @@ import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { User, Shirt, MapPin, Move, Camera, Smile, Sun, Aperture, Ratio, ImagePlus, Palette } from 'lucide-react';
+import { User, Shirt, MapPin, Move, Camera, Smile, Sun, Aperture, Ratio, Palette } from 'lucide-react';
 import OptionGrid from '@/components/builder/OptionGrid';
-import PromptPreview from '@/components/builder/PromptPreview';
+import AvatarPreview from '@/components/builder/AvatarPreview';
 import EditTab from '@/components/builder/EditTab';
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -57,28 +57,6 @@ const GenderSelection = ({ onSelect }: { onSelect: (g: Gender) => void }) => (
         </button>
       ))}
     </div>
-  </div>
-);
-
-const VisualReferences = () => (
-  <div className="rounded-xl border border-dashed border-border bg-card/50 p-5">
-    <h3 className="mb-3 text-sm font-semibold font-display text-card-foreground flex items-center gap-2">
-      🖼️ Referências Visuais
-      Referências Visuais
-    </h3>
-    <div className="grid grid-cols-3 gap-3">
-      {[1, 2, 3].map((i) => (
-        <div
-          key={i}
-          className="flex aspect-square items-center justify-center rounded-lg border border-dashed border-border bg-secondary/50 text-muted-foreground/40 text-xs"
-        >
-          <ImagePlus className="h-6 w-6" />
-        </div>
-      ))}
-    </div>
-    <p className="mt-3 text-xs text-muted-foreground text-center">
-      Upload de referências visuais em breve
-    </p>
   </div>
 );
 
@@ -162,6 +140,11 @@ const AvatarBuilderPage = () => {
   );
 
   const prompt = useMemo(() => (fullState ? generatePrompt(fullState) : ''), [fullState]);
+
+  // Config version counter for shimmer effect
+  const configVersion = useMemo(() => {
+    return JSON.stringify(state).length + Date.now();
+  }, [state]);
 
   if (!gender) return <GenderSelection onSelect={setGender} />;
 
@@ -277,7 +260,12 @@ const AvatarBuilderPage = () => {
       {activeTab === 'edit' ? (
         <EditTab />
       ) : (
-        <div className="flex flex-1 flex-col lg:flex-row">
+        <div className="flex flex-1 flex-col lg:flex-row min-h-0">
+          {/* Mobile Preview - top */}
+          <div className="lg:hidden border-b border-border max-h-[50vh] overflow-y-auto">
+            <AvatarPreview gender={gender} prompt={prompt} configVersion={configVersion} />
+          </div>
+
           {/* Builder Column */}
           <div className="flex-1 overflow-y-auto p-6 lg:max-w-[55%]">
             <div className="mb-6">
@@ -438,7 +426,6 @@ const AvatarBuilderPage = () => {
                           })}
                         </div>
                       ) : block.id === 'environment' ? (
-                        // Conditional environment rendering
                         isThematic ? (
                           <div className="space-y-4">
                             <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
@@ -524,16 +511,10 @@ const AvatarBuilderPage = () => {
           </div>
 
           {/* Preview Column - desktop */}
-          <div className="hidden lg:block lg:w-[45%] border-l border-border">
-            <div className="sticky top-0 p-6 space-y-6">
-              <PromptPreview prompt={prompt} />
-              <VisualReferences />
+          <div className="hidden lg:flex lg:flex-col lg:w-[45%] border-l border-border">
+            <div className="sticky top-0 h-screen overflow-hidden">
+              <AvatarPreview gender={gender} prompt={prompt} configVersion={configVersion} />
             </div>
-          </div>
-
-          {/* Mobile preview button */}
-          <div className="fixed bottom-4 left-4 right-4 lg:hidden z-20">
-            <PromptPreview prompt={prompt} mobile />
           </div>
         </div>
       )}
