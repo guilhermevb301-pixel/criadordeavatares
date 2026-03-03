@@ -1,40 +1,97 @@
 
 
-## Problema
+## Adicionar Campo de Texto Livre em Cada Seção do Builder
 
-O preview do avatar usa **imagens estáticas do Unsplash** — uma foto fixa para masculino e outra para feminino. Não importa o que o usuário selecione (cabelo, pele, estilo), a imagem nunca muda. O único feedback visual é um shimmer sutil que dura 1.2s, mas a imagem continua a mesma.
+### Resumo
 
-O projeto já tem um hook `useImageGeneration` e uma edge function `generate-image` que poderiam gerar imagens via IA, mas não estão conectados ao preview.
+Adicionar um campo de texto "Personalizar" (Input) em cada seção de configuracao do avatar (Roupa, Ambiente, Posicao, Angulo de Camera, Expressao, Iluminacao, Estilo Fotografico, Proporcao, e sub-blocos de Aparencia). Isso permite que o usuario digite algo extra como "blusa vermelha" ou "em cima de um predio abandonado" alem das opcoes pre-definidas.
 
-## Plano
+---
 
-### 1. Gerar preview real com IA usando Lovable AI
+### Como funciona
 
-Conectar o `AvatarPreview` ao modelo de geração de imagens `google/gemini-3-pro-image-preview` via edge function para gerar um avatar baseado no prompt construído pelo usuário.
+- Abaixo das opcoes de cada bloco, aparece um campo de texto com placeholder contextualizado (ex: "Ex: blusa vermelha com estampa..." para Roupa, "Ex: em cima de um predio abandonado..." para Ambiente)
+- O texto digitado e incluido no prompt final junto com as opcoes selecionadas
+- Se o usuario so digitar texto sem selecionar opcoes, funciona tambem
 
-**Mudanças:**
+---
 
-- **`supabase/functions/generate-image/index.ts`** — Atualizar a edge function para chamar o modelo de imagem do Lovable AI (`google/gemini-3-pro-image-preview`) com o prompt gerado, retornando a imagem como base64 ou URL.
+### Arquivos a modificar
 
-- **`src/components/builder/AvatarPreview.tsx`**:
-  - Integrar `useImageGeneration` hook
-  - Adicionar lógica de debounce (~2s após última mudança) para auto-gerar preview
-  - Mostrar loading skeleton/shimmer enquanto gera
-  - Exibir imagem gerada quando disponível, fallback para placeholder
-  - Mostrar mensagem de erro amigável se falhar
+#### 1. `src/lib/avatar-config.ts`
+- Adicionar novos campos ao `AvatarState` e `defaultAvatarState`:
+  - `customClothing: string`
+  - `customEnvironment: string`
+  - `customPose: string`
+  - `customCameraAngle: string`
+  - `customCameraFraming: string`
+  - `customExpression: string`
+  - `customLighting: string`
+  - `customPhotoStyle: string`
+  - `customAspectRatio: string`
+  - `customSkinTone: string`
+  - `customEyeColor: string`
+  - `customHairColor: string`
+  - `customHairType: string`
+  - `customFeatures: string`
 
-- **`src/pages/AvatarBuilderPage.tsx`**:
-  - Passar o prompt completo e um trigger de geração para o `AvatarPreview`
+Todos com default `''`.
 
-### 2. Feedback visual melhorado durante geração
+#### 2. `src/lib/prompt-engine.ts`
+- Em cada secao do prompt, apos coletar os valores das opcoes pre-definidas, concatenar o campo custom correspondente se preenchido
+- Exemplo para roupa: se `state.customClothing` tem valor, adicionar ao final da secao de roupas
 
-- Substituir o shimmer curto por um skeleton loader com animação de pulso contínuo enquanto a IA gera
-- Mostrar badge "Gerando..." durante o processo
-- Mostrar badge "Atualizado" quando a imagem nova chegar
+#### 3. `src/pages/AvatarBuilderPage.tsx`
+- Em cada bloco do Accordion (e sub-blocos de appearance e camera), adicionar um `<Input>` abaixo do `<OptionGrid>` com:
+  - Icone de lapis ou emoji
+  - Placeholder contextualizado
+  - Bind ao campo custom correspondente via `updateField`
 
-### 3. Controle de custo
+---
 
-- Gerar apenas quando o usuário parar de clicar por 2 segundos (debounce)
-- Botão manual "Gerar Preview" como alternativa ao auto-generate
-- Cache da última imagem gerada para não re-gerar se o prompt não mudou
+### Detalhes tecnicos
+
+**Novos campos no state** (14 campos string, todos default `''`):
+
+```text
+customClothing, customEnvironment, customPose, 
+customCameraAngle, customCameraFraming, customExpression, 
+customLighting, customPhotoStyle, customAspectRatio,
+customSkinTone, customEyeColor, customHairColor, 
+customHairType, customFeatures
+```
+
+**Prompt engine** -- para cada secao, o campo custom e adicionado com virgula apos os valores selecionados. Exemplo para roupa:
+
+```text
+// Antes: "wearing a casual t-shirt layered with wearing a hoodie"
+// Depois: "wearing a casual t-shirt layered with wearing a hoodie, with red color and brand logo"
+```
+
+**UI** -- cada Input segue o padrao:
+
+```text
+<Input
+  value={state.customClothing}
+  onChange={(e) => updateField('customClothing', e.target.value)}
+  placeholder="✏️ Ex: blusa vermelha com estampa..."
+  className="mt-3"
+/>
+```
+
+**Placeholders contextualizados:**
+- Roupa: "Ex: blusa vermelha, terno azul marinho..."
+- Ambiente: "Ex: em cima de um predio abandonado..."
+- Posicao: "Ex: sentado em uma cadeira de escritorio..."
+- Angulo: "Ex: camera de drone vista aerea..."
+- Enquadramento: "Ex: apenas o rosto bem proximo..."
+- Expressao: "Ex: sorriso com os olhos fechados..."
+- Iluminacao: "Ex: luz roxa neon vindo da esquerda..."
+- Estilo Foto: "Ex: foto com lente olho de peixe..."
+- Proporcao: "Ex: formato panoramico ultra-wide..."
+- Tom de Pele: "Ex: pele bronzeada com sardas..."
+- Cor dos Olhos: "Ex: olhos heterocromicos verde e azul..."
+- Cor do Cabelo: "Ex: cabelo com mechas roxas..."
+- Tipo de Cabelo: "Ex: cabelo com trancas box braids..."
+- Caracteristicas: "Ex: cicatriz no queixo, sobrancelha grossa..."
 
