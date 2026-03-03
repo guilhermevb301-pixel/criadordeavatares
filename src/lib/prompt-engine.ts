@@ -110,7 +110,7 @@ export function generatePrompt(state: AvatarState): string {
   if (beard) sections.push(beard);
 
   // 4. Features
-  const featureDescs = state.features
+  const featureDescs = (state.features || [])
     .map(f => findOption(appearanceSubBlocks.features.options, f))
     .filter(Boolean);
   if (state.customFeatures?.trim()) featureDescs.push(state.customFeatures.trim());
@@ -123,7 +123,7 @@ export function generatePrompt(state: AvatarState): string {
   if (glasses) sections.push(glasses);
 
   // 4c. Piercings & Tattoos
-  const piercDescs = state.piercingsTattoos
+  const piercDescs = (state.piercingsTattoos || [])
     .map(p => findOption(personalitySubBlocks.piercingsTattoos.options, p))
     .filter(Boolean);
   if (piercDescs.length > 0) sections.push(piercDescs.join(', '));
@@ -135,7 +135,7 @@ export function generatePrompt(state: AvatarState): string {
   // 5. Clothing
   const clothingBlock = blocks.find(b => b.id === 'clothing');
   {
-    const clothingDescs = state.clothing
+    const clothingDescs = (state.clothing || [])
       .map(c => findOption(clothingBlock?.options || [], c))
       .filter(Boolean);
     if (state.customClothing?.trim()) clothingDescs.push(state.customClothing.trim());
