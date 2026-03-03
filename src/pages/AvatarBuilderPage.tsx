@@ -539,10 +539,6 @@ const AvatarBuilderPage = () => {
         <EditTab />
       ) : (
         <div className="flex flex-1 flex-col lg:flex-row min-h-0">
-          {/* Mobile Preview - top */}
-          <div className="lg:hidden border-b border-border max-h-[50vh] overflow-y-auto">
-            <AvatarPreview gender={gender} prompt={prompt} configVersion={configVersion} onRandomize={randomize} />
-          </div>
 
           {/* Builder Column */}
           <div className="flex-1 overflow-y-auto p-6 lg:max-w-[55%]">
@@ -732,12 +728,6 @@ const AvatarBuilderPage = () => {
             </div>
           </div>
 
-          {/* Preview Column - desktop */}
-          <div className="hidden lg:flex lg:flex-col lg:w-[45%] border-l border-border">
-            <div className="sticky top-0 h-screen overflow-hidden">
-              <AvatarPreview gender={gender} prompt={prompt} configVersion={configVersion} onRandomize={randomize} />
-            </div>
-          </div>
         </div>
       )}
     </div>
