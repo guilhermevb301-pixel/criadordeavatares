@@ -33,7 +33,7 @@ export const useAvatarStore = create<AvatarStore>()(
         set((s) => ({ state: { ...s.state, [key]: value } })),
       toggleMultiField: (key, id) =>
         set((s) => {
-          const arr = s.state[key] as string[];
+          const arr = Array.isArray(s.state[key]) ? (s.state[key] as string[]) : [];
           const next = arr.includes(id) ? arr.filter(x => x !== id) : [...arr, id];
           return { state: { ...s.state, [key]: next } };
         }),
@@ -90,6 +90,31 @@ export const useAvatarStore = create<AvatarStore>()(
         }),
       reset: () => set({ gender: null, state: { ...defaultAvatarState } }),
     }),
-    { name: 'avatar-builder-state' }
+    {
+      name: 'avatar-builder-state',
+      merge: (persistedState, currentState) => {
+        const persisted = (persistedState as Partial<AvatarStore>) || {};
+        const persistedInnerState = (persisted.state as Partial<AvatarState>) || {};
+
+        return {
+          ...currentState,
+          ...persisted,
+          state: {
+            ...defaultAvatarState,
+            ...currentState.state,
+            ...persistedInnerState,
+            features: Array.isArray(persistedInnerState.features)
+              ? persistedInnerState.features
+              : defaultAvatarState.features,
+            clothing: Array.isArray(persistedInnerState.clothing)
+              ? persistedInnerState.clothing
+              : defaultAvatarState.clothing,
+            piercingsTattoos: Array.isArray(persistedInnerState.piercingsTattoos)
+              ? persistedInnerState.piercingsTattoos
+              : defaultAvatarState.piercingsTattoos,
+          },
+        } as AvatarStore;
+      },
+    }
   )
 );
