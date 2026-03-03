@@ -205,12 +205,12 @@ const AvatarBuilderPage = () => {
     const findLabel = (opts: { id: string; label: string }[], val: string) =>
       opts.find(o => o.id === val)?.label;
     if (state.glassesStyle && state.glassesStyle !== 'none') tags.push(findLabel(personalitySubBlocks.glassesStyle.options, state.glassesStyle) || '');
-    state.piercingsTattoos.forEach(p => {
+    (state.piercingsTattoos || []).forEach(p => {
       const l = findLabel(personalitySubBlocks.piercingsTattoos.options, p);
       if (l) tags.push(l);
     });
     if (state.makeupStyle && state.makeupStyle !== 'none') tags.push(findLabel(personalitySubBlocks.makeupStyle.options, state.makeupStyle) || '');
-    state.features.forEach(f => {
+    (state.features || []).forEach(f => {
       const l = findLabel(appearanceSubBlocks.features.options, f);
       if (l) tags.push(l);
     });
@@ -232,7 +232,7 @@ const AvatarBuilderPage = () => {
       opts.find(o => o.id === val)?.label;
     switch (blockId) {
       case 'clothing':
-        state.clothing.forEach(c => {
+        (state.clothing || []).forEach(c => {
           const block = blocks.find(b => b.id === 'clothing');
           const l = block?.options?.find(o => o.id === c)?.label;
           if (l) tags.push(l);
@@ -434,7 +434,7 @@ const AvatarBuilderPage = () => {
           <SubBlockSection
             title="Piercings / Tatuagens"
             options={personalitySubBlocks.piercingsTattoos.options}
-            selected={state.piercingsTattoos}
+            selected={state.piercingsTattoos || []}
             onSelect={(id) => toggleMultiField('piercingsTattoos', id)}
             multi={true}
           />
@@ -448,7 +448,7 @@ const AvatarBuilderPage = () => {
           <SubBlockSection
             title="Características Especiais"
             options={appearanceSubBlocks.features.options}
-            selected={state.features}
+            selected={state.features || []}
             onSelect={(id) => toggleMultiField('features', id)}
             multi={true}
             customKey="customFeatures"
@@ -690,7 +690,7 @@ const AvatarBuilderPage = () => {
                               options={block.options || []}
                               selected={
                                 block.id === 'clothing'
-                                  ? state.clothing
+                                  ? (state.clothing || [])
                                   : [state[block.id as keyof typeof state] as string]
                               }
                               onSelect={(id) => {
