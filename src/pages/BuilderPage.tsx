@@ -60,14 +60,14 @@ const BuilderPage = () => {
         if (state.eyeColor) tags.push(findLabel(appearanceSubBlocks.eyeColor, state.eyeColor) || '');
         if (state.hairColor) tags.push(findLabel(appearanceSubBlocks.hairColor, state.hairColor) || '');
         if (state.hairType) tags.push(findLabel(appearanceSubBlocks.hairType, state.hairType) || '');
-        state.features.forEach(f => {
+        (state.features || []).forEach(f => {
           const l = findLabel(appearanceSubBlocks.features, f);
           if (l) tags.push(l);
         });
         break;
       }
       case 'clothing':
-        state.clothing.forEach(c => {
+        (state.clothing || []).forEach(c => {
           const block = blocks.find(b => b.id === 'clothing');
           const l = block?.options?.find(o => o.id === c)?.label;
           if (l) tags.push(l);
