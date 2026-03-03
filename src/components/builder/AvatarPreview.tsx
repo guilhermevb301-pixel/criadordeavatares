@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Sparkles, Eye, Copy, Check } from 'lucide-react';
+import { Sparkles, Eye, Copy, Check, Dices } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -15,10 +15,11 @@ import type { Gender } from '@/lib/avatar-config';
 interface AvatarPreviewProps {
   gender: Gender;
   prompt: string;
-  configVersion: number; // increments on any config change to trigger shimmer
+  configVersion: number;
+  onRandomize?: () => void;
 }
 
-const AvatarPreview = ({ gender, prompt, configVersion }: AvatarPreviewProps) => {
+const AvatarPreview = ({ gender, prompt, configVersion, onRandomize }: AvatarPreviewProps) => {
   const [isShimmering, setIsShimmering] = useState(false);
   const [displayedPrompt, setDisplayedPrompt] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -29,7 +30,6 @@ const AvatarPreview = ({ gender, prompt, configVersion }: AvatarPreviewProps) =>
   const prevVersion = useRef(configVersion);
   const typingRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Trigger shimmer on config change
   useEffect(() => {
     if (configVersion !== prevVersion.current) {
       prevVersion.current = configVersion;
@@ -39,7 +39,6 @@ const AvatarPreview = ({ gender, prompt, configVersion }: AvatarPreviewProps) =>
     }
   }, [configVersion]);
 
-  // Typing animation for prompt
   useEffect(() => {
     if (typingRef.current) clearTimeout(typingRef.current);
     if (!prompt) {
@@ -88,17 +87,16 @@ const AvatarPreview = ({ gender, prompt, configVersion }: AvatarPreviewProps) =>
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
       <div className="flex items-center gap-2 px-5 py-3 border-b border-border">
         <Eye className="h-4 w-4 text-muted-foreground" />
         <h3 className="text-sm font-semibold font-display text-foreground">Preview em Tempo Real</h3>
         <div className={cn(
           "ml-auto flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full transition-colors",
           isShimmering
-            ? "bg-accent/20 text-accent-foreground"
+            ? "bg-emerald-500/20 text-emerald-400"
             : "bg-secondary text-muted-foreground"
         )}>
-          <span className={cn("h-1.5 w-1.5 rounded-full", isShimmering ? "bg-accent animate-pulse" : "bg-muted-foreground/40")} />
+          <span className={cn("h-1.5 w-1.5 rounded-full", isShimmering ? "bg-emerald-500 animate-pulse" : "bg-muted-foreground/40")} />
           {isShimmering ? 'Atualizando...' : 'Sincronizado'}
         </div>
       </div>
@@ -127,6 +125,16 @@ const AvatarPreview = ({ gender, prompt, configVersion }: AvatarPreviewProps) =>
               Placeholder
             </span>
           </div>
+          {/* Floating Randomize button */}
+          {onRandomize && (
+            <button
+              onClick={onRandomize}
+              className="absolute top-3 right-3 flex items-center gap-1.5 rounded-full bg-card/90 backdrop-blur-sm border border-border/50 px-3 py-1.5 text-xs font-medium text-foreground shadow-lg hover:bg-card transition-colors"
+            >
+              <Dices className="h-3.5 w-3.5" />
+              🎲 Randomize
+            </button>
+          )}
         </div>
 
         {/* Generate Button */}
@@ -158,7 +166,7 @@ const AvatarPreview = ({ gender, prompt, configVersion }: AvatarPreviewProps) =>
           <div className="rounded-lg bg-secondary/70 p-3 text-sm text-foreground leading-relaxed min-h-[80px] max-h-[200px] overflow-y-auto font-mono text-xs">
             {displayedPrompt}
             {isTyping && (
-              <span className="inline-block w-0.5 h-3.5 bg-accent ml-0.5 animate-pulse" />
+              <span className="inline-block w-0.5 h-3.5 bg-emerald-500 ml-0.5 animate-pulse" />
             )}
           </div>
         </div>
@@ -178,8 +186,8 @@ const AvatarPreview = ({ gender, prompt, configVersion }: AvatarPreviewProps) =>
           </DialogHeader>
           {submitted ? (
             <div className="flex flex-col items-center py-6 gap-3">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-accent/20">
-                <Check className="h-7 w-7 text-accent" />
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/20">
+                <Check className="h-7 w-7 text-emerald-500" />
               </div>
               <p className="text-sm font-medium text-foreground">Você está na lista! 🎉</p>
               <p className="text-xs text-muted-foreground">Avisaremos quando estiver disponível.</p>

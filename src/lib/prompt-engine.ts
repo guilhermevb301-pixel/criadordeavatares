@@ -6,9 +6,11 @@ import {
   type Gender,
   type OptionItem,
   appearanceSubBlocks,
+  personalitySubBlocks,
   cameraSubBlocks,
   getBuilderBlocks,
   visualStyles,
+  artStyles,
   thematicEnvironments,
   isThematicStyle,
 } from './avatar-config';
@@ -31,26 +33,31 @@ function ageDescriptor(age: number, gender: Gender): string {
   }
 }
 
-function getStyleOpener(styleId: string): string {
+function getStyleOpener(styleId: string, artStyleId?: string): string {
+  // If artStyle is set, use it instead
+  if (artStyleId && artStyleId !== 'photorealistic') {
+    const artVal = findOption(artStyles, artStyleId);
+    if (artVal) return artVal;
+  }
   return findOption(visualStyles, styleId) || 'Ultra-photorealistic professional portrait';
 }
 
 function getFinishingModifiers(styleId: string): string {
   switch (styleId) {
     case 'realistic':
-      return 'the final image must look like a real, high-budget photograph captured in-camera, fully photorealistic, authentic, and human, with no text, no logos, no branding, no CGI look, and no AI artifacts';
+      return 'rendered in Unreal Engine 5 quality with Octane Render lighting; the final image must look like a real, high-budget photograph captured in-camera, fully photorealistic, authentic, and human, with no text, no logos, no branding, no CGI look, and no AI artifacts';
     case 'cartoon':
-      return 'the final image must be a polished cartoon illustration with consistent style, vibrant colors, no text, no logos, no branding';
+      return 'rendered with Unreal Engine 5 stylized pipeline; the final image must be a polished cartoon illustration with consistent style, vibrant colors, no text, no logos, no branding';
     case 'anime':
-      return 'the final image must be a polished anime illustration with consistent style, clean lines, vibrant colors, no text, no logos, no branding';
+      return 'rendered with cinematic Octane Render quality; the final image must be a polished anime illustration with consistent style, clean lines, vibrant colors, no text, no logos, no branding';
     case 'low-poly':
-      return 'the final image must be a clean low-poly 3D render with consistent geometry, no text, no logos, no branding';
+      return 'rendered in Unreal Engine 5 with Octane Render; the final image must be a clean low-poly 3D render with consistent geometry, no text, no logos, no branding';
     case 'watercolor':
-      return 'the final image must look like a hand-painted watercolor with natural brush strokes, no text, no logos, no branding';
+      return 'the final image must look like a hand-painted watercolor with natural brush strokes, Octane Render ambient occlusion, no text, no logos, no branding';
     case 'pixel-art':
       return 'the final image must be consistent 16-bit pixel art with limited color palette, no text, no logos, no branding';
     default:
-      return 'the final image must have no text, no logos, no branding, and no AI artifacts';
+      return 'rendered in Unreal Engine 5 with Octane Render; the final image must have no text, no logos, no branding, and no AI artifacts';
   }
 }
 
@@ -65,7 +72,7 @@ export function generatePrompt(state: AvatarState): string {
   const framing = findOption(cameraSubBlocks.framing.options, state.cameraFraming);
   const framingCustom = state.customCameraFraming?.trim();
   const subject = ageDescriptor(state.age, state.gender);
-  const opener = getStyleOpener(style);
+  const opener = getStyleOpener(style, state.artStyle);
   const framingParts = [framing, framingCustom].filter(Boolean);
   const framingClause = framingParts.length > 0 ? `${framingParts.join(', ')} depicting ${subject}` : `depicting ${subject}`;
   sections.push(`${opener}, ${framingClause}`);
@@ -80,15 +87,27 @@ export function generatePrompt(state: AvatarState): string {
     sections.push(`the character must look exactly like ${state.celebrityRef.trim()}, replicating their facial features, bone structure, and overall appearance as closely as possible`);
   }
 
+  // 2b. Face shape
+  const faceShape = findOption(personalitySubBlocks.faceShape.options, state.faceShape);
+  if (faceShape) {
+    sections.push(faceShape);
+  }
+
   // 3. Appearance (skin, eyes, hair)
   const skin = findOption(appearanceSubBlocks.skinTone.options, state.skinTone);
   const eyes = findOption(appearanceSubBlocks.eyeColor.options, state.eyeColor);
   const hairColor = findOption(appearanceSubBlocks.hairColor.options, state.hairColor);
   const hairType = findOption(appearanceSubBlocks.hairType.options, state.hairType);
-  const appearanceParts = [skin, state.customSkinTone, eyes, state.customEyeColor, hairColor, state.customHairColor, hairType, state.customHairType].filter(Boolean);
+  const exoticHair = findOption(personalitySubBlocks.exoticHairColor.options, state.exoticHairColor);
+  const hairCut = findOption(personalitySubBlocks.hairCut.options, state.hairCut);
+  const appearanceParts = [skin, state.customSkinTone, eyes, state.customEyeColor, exoticHair || hairColor, state.customHairColor, hairType, state.customHairType, hairCut].filter(Boolean);
   if (appearanceParts.length > 0) {
     sections.push(`the subject has ${appearanceParts.join(', ')}`);
   }
+
+  // 3b. Beard
+  const beard = findOption(personalitySubBlocks.beardStyle.options, state.beardStyle);
+  if (beard) sections.push(beard);
 
   // 4. Features
   const featureDescs = state.features
@@ -98,6 +117,20 @@ export function generatePrompt(state: AvatarState): string {
   if (featureDescs.length > 0) {
     sections.push(featureDescs.join(', '));
   }
+
+  // 4b. Glasses
+  const glasses = findOption(personalitySubBlocks.glassesStyle.options, state.glassesStyle);
+  if (glasses) sections.push(glasses);
+
+  // 4c. Piercings & Tattoos
+  const piercDescs = state.piercingsTattoos
+    .map(p => findOption(personalitySubBlocks.piercingsTattoos.options, p))
+    .filter(Boolean);
+  if (piercDescs.length > 0) sections.push(piercDescs.join(', '));
+
+  // 4d. Makeup
+  const makeup = findOption(personalitySubBlocks.makeupStyle.options, state.makeupStyle);
+  if (makeup) sections.push(makeup);
 
   // 5. Clothing
   const clothingBlock = blocks.find(b => b.id === 'clothing');
@@ -183,7 +216,7 @@ export function generatePrompt(state: AvatarState): string {
     if (arParts.length > 0) sections.push(arParts.join(', '));
   }
 
-  // 14. Finishing modifiers
+  // 14. Finishing modifiers with UE5/Octane
   sections.push(getFinishingModifiers(style));
 
   return sections.join('; ') + '.';
