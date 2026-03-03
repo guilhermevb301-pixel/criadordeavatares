@@ -539,7 +539,10 @@ const AvatarBuilderPage = () => {
         <EditTab />
       ) : (
         <div className="flex flex-1 flex-col lg:flex-row min-h-0">
-
+          {/* Mobile Prompt Preview */}
+          <div className="lg:hidden border-b border-border p-5">
+            <AvatarPromptCard prompt={prompt} />
+          </div>
           {/* Builder Column */}
           <div className="flex-1 overflow-y-auto p-6 lg:max-w-[55%]">
             <div className="mb-6">
@@ -728,6 +731,12 @@ const AvatarBuilderPage = () => {
             </div>
           </div>
 
+          {/* Prompt Column - desktop */}
+          <div className="hidden lg:flex lg:flex-col lg:w-[45%] border-l border-border">
+            <div className="sticky top-0 p-5">
+              <AvatarPromptCard prompt={prompt} />
+            </div>
+          </div>
         </div>
       )}
     </div>
