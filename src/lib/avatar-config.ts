@@ -7,6 +7,7 @@ export interface OptionItem {
   id: string;
   label: string; // PT
   promptValue: string; // EN descriptor
+  icon?: string; // emoji mini-preview
 }
 
 export interface BuilderBlock {
@@ -24,56 +25,130 @@ export interface BuilderBlock {
 // ─── Shared Options ───
 
 const skinTones: OptionItem[] = [
-  { id: 'very-light', label: 'Muito Clara', promptValue: 'very fair porcelain skin' },
-  { id: 'light', label: 'Clara', promptValue: 'light skin tone' },
-  { id: 'medium', label: 'Média', promptValue: 'medium skin tone' },
-  { id: 'olive', label: 'Morena Clara', promptValue: 'olive skin tone with warm undertones' },
-  { id: 'tan', label: 'Morena', promptValue: 'tan warm skin tone' },
-  { id: 'brown', label: 'Parda', promptValue: 'brown skin tone with golden undertones' },
-  { id: 'dark-brown', label: 'Negra Clara', promptValue: 'dark brown skin with rich undertones' },
-  { id: 'dark', label: 'Negra', promptValue: 'deep dark skin tone with smooth complexion' },
+  { id: 'very-light', label: 'Muito Clara', promptValue: 'very fair porcelain skin', icon: '🏻' },
+  { id: 'light', label: 'Clara', promptValue: 'light skin tone', icon: '🏻' },
+  { id: 'medium', label: 'Média', promptValue: 'medium skin tone', icon: '🏼' },
+  { id: 'olive', label: 'Morena Clara', promptValue: 'olive skin tone with warm undertones', icon: '🏽' },
+  { id: 'tan', label: 'Morena', promptValue: 'tan warm skin tone', icon: '🏽' },
+  { id: 'brown', label: 'Parda', promptValue: 'brown skin tone with golden undertones', icon: '🏾' },
+  { id: 'dark-brown', label: 'Negra Clara', promptValue: 'dark brown skin with rich undertones', icon: '🏾' },
+  { id: 'dark', label: 'Negra', promptValue: 'deep dark skin tone with smooth complexion', icon: '🏿' },
 ];
 
 const eyeColors: OptionItem[] = [
-  { id: 'brown', label: 'Castanho', promptValue: 'brown eyes' },
-  { id: 'dark-brown', label: 'Castanho Escuro', promptValue: 'dark brown eyes' },
-  { id: 'hazel', label: 'Avelã', promptValue: 'hazel eyes' },
-  { id: 'green', label: 'Verde', promptValue: 'green eyes' },
-  { id: 'blue', label: 'Azul', promptValue: 'blue eyes' },
-  { id: 'gray', label: 'Cinza', promptValue: 'gray eyes' },
-  { id: 'amber', label: 'Âmbar', promptValue: 'amber eyes' },
+  { id: 'brown', label: 'Castanho', promptValue: 'brown eyes', icon: '🟤' },
+  { id: 'dark-brown', label: 'Castanho Escuro', promptValue: 'dark brown eyes', icon: '🟤' },
+  { id: 'hazel', label: 'Avelã', promptValue: 'hazel eyes', icon: '🟡' },
+  { id: 'green', label: 'Verde', promptValue: 'green eyes', icon: '🟢' },
+  { id: 'blue', label: 'Azul', promptValue: 'blue eyes', icon: '🔵' },
+  { id: 'gray', label: 'Cinza', promptValue: 'gray eyes', icon: '⚪' },
+  { id: 'amber', label: 'Âmbar', promptValue: 'amber eyes', icon: '🟠' },
 ];
 
 const hairColors: OptionItem[] = [
-  { id: 'black', label: 'Preto', promptValue: 'black hair' },
-  { id: 'dark-brown', label: 'Castanho Escuro', promptValue: 'dark brown hair' },
-  { id: 'brown', label: 'Castanho', promptValue: 'brown hair' },
-  { id: 'light-brown', label: 'Castanho Claro', promptValue: 'light brown hair' },
-  { id: 'blonde', label: 'Loiro', promptValue: 'blonde hair' },
-  { id: 'platinum', label: 'Platinado', promptValue: 'platinum blonde hair' },
-  { id: 'red', label: 'Ruivo', promptValue: 'red ginger hair' },
-  { id: 'auburn', label: 'Ruivo Escuro', promptValue: 'auburn hair' },
-  { id: 'gray', label: 'Grisalho', promptValue: 'gray hair' },
+  { id: 'black', label: 'Preto', promptValue: 'black hair', icon: '⬛' },
+  { id: 'dark-brown', label: 'Castanho Escuro', promptValue: 'dark brown hair', icon: '🟫' },
+  { id: 'brown', label: 'Castanho', promptValue: 'brown hair', icon: '🟫' },
+  { id: 'light-brown', label: 'Castanho Claro', promptValue: 'light brown hair', icon: '🟫' },
+  { id: 'blonde', label: 'Loiro', promptValue: 'blonde hair', icon: '🟨' },
+  { id: 'platinum', label: 'Platinado', promptValue: 'platinum blonde hair', icon: '⬜' },
+  { id: 'red', label: 'Ruivo', promptValue: 'red ginger hair', icon: '🟧' },
+  { id: 'auburn', label: 'Ruivo Escuro', promptValue: 'auburn hair', icon: '🟧' },
+  { id: 'gray', label: 'Grisalho', promptValue: 'gray hair', icon: '🩶' },
+];
+
+const exoticHairColors: OptionItem[] = [
+  { id: 'cyberpunk-pink', label: 'Cyberpunk Pink', promptValue: 'vibrant cyberpunk pink hair', icon: '🩷' },
+  { id: 'platinum-white', label: 'Platinum White', promptValue: 'platinum white icy hair', icon: '🤍' },
+  { id: 'electric-blue', label: 'Electric Blue', promptValue: 'electric neon blue hair', icon: '💙' },
+  { id: 'emerald-green', label: 'Emerald Green', promptValue: 'deep emerald green hair', icon: '💚' },
+  { id: 'lavender', label: 'Lavanda', promptValue: 'soft lavender purple hair', icon: '💜' },
+  { id: 'fire-orange', label: 'Fire Orange', promptValue: 'fiery bright orange hair', icon: '🧡' },
+  { id: 'silver-chrome', label: 'Silver Chrome', promptValue: 'metallic silver chrome hair', icon: '🩶' },
+  { id: 'galaxy-ombre', label: 'Galaxy Ombré', promptValue: 'galaxy ombré hair transitioning from deep purple to blue to pink', icon: '🌌' },
+];
+
+const hairCuts: OptionItem[] = [
+  { id: 'buzzcut', label: 'Buzzcut', promptValue: 'buzzcut hairstyle', icon: '💈' },
+  { id: 'fade', label: 'Fade', promptValue: 'clean fade haircut', icon: '💈' },
+  { id: 'long-wavy', label: 'Long Wavy', promptValue: 'long wavy flowing hair', icon: '🌊' },
+  { id: 'bob', label: 'Bob Cut', promptValue: 'chin-length bob cut', icon: '✂️' },
+  { id: 'pixie', label: 'Pixie Cut', promptValue: 'short pixie cut', icon: '✂️' },
+  { id: 'undercut', label: 'Undercut', promptValue: 'stylish undercut hairstyle', icon: '💈' },
+  { id: 'man-bun', label: 'Man Bun', promptValue: 'man bun hairstyle', icon: '🎀' },
+  { id: 'braids', label: 'Tranças', promptValue: 'intricate braided hairstyle', icon: '🪢' },
+  { id: 'afro', label: 'Afro', promptValue: 'voluminous natural afro hairstyle', icon: '🌀' },
+  { id: 'mohawk', label: 'Moicano', promptValue: 'bold mohawk hairstyle', icon: '🦔' },
+  { id: 'slicked-back', label: 'Slicked Back', promptValue: 'slicked back hair with gel', icon: '💈' },
+  { id: 'curtain-bangs', label: 'Curtain Bangs', promptValue: 'curtain bangs framing the face', icon: '🪟' },
 ];
 
 const hairTypes: OptionItem[] = [
-  { id: 'straight', label: 'Liso', promptValue: 'straight hair' },
-  { id: 'wavy', label: 'Ondulado', promptValue: 'wavy hair' },
-  { id: 'curly', label: 'Cacheado', promptValue: 'curly hair' },
-  { id: 'coily', label: 'Crespo', promptValue: 'coily afro-textured hair' },
-  { id: 'bald', label: 'Careca', promptValue: 'bald head' },
-  { id: 'buzz', label: 'Raspado', promptValue: 'buzz cut' },
+  { id: 'straight', label: 'Liso', promptValue: 'straight hair', icon: '📏' },
+  { id: 'wavy', label: 'Ondulado', promptValue: 'wavy hair', icon: '🌊' },
+  { id: 'curly', label: 'Cacheado', promptValue: 'curly hair', icon: '🌀' },
+  { id: 'coily', label: 'Crespo', promptValue: 'coily afro-textured hair', icon: '🌀' },
+  { id: 'bald', label: 'Careca', promptValue: 'bald head', icon: '🥚' },
+  { id: 'buzz', label: 'Raspado', promptValue: 'buzz cut', icon: '💈' },
+];
+
+const faceShapes: OptionItem[] = [
+  { id: 'oval', label: 'Oval', promptValue: 'oval face shape', icon: '🥚' },
+  { id: 'square', label: 'Quadrado', promptValue: 'square jawline face shape', icon: '⬜' },
+  { id: 'heart', label: 'Coração', promptValue: 'heart-shaped face with pointed chin', icon: '❤️' },
+  { id: 'round', label: 'Redondo', promptValue: 'round soft face shape', icon: '⭕' },
+  { id: 'diamond', label: 'Diamante', promptValue: 'diamond face shape with high cheekbones', icon: '💎' },
+  { id: 'oblong', label: 'Oblongo', promptValue: 'oblong elongated face shape', icon: '📏' },
+];
+
+const beardStyles: OptionItem[] = [
+  { id: 'clean', label: 'Sem Barba', promptValue: 'clean shaven', icon: '🧑' },
+  { id: 'stubble', label: 'Barba por Fazer', promptValue: 'stylish stubble beard', icon: '🧔' },
+  { id: 'short-beard', label: 'Barba Curta', promptValue: 'short well-trimmed beard', icon: '🧔' },
+  { id: 'full-beard', label: 'Barba Cheia', promptValue: 'full thick beard', icon: '🧔‍♂️' },
+  { id: 'goatee', label: 'Cavanhaque', promptValue: 'goatee beard style', icon: '🐐' },
+  { id: 'mustache', label: 'Bigode', promptValue: 'prominent stylish mustache', icon: '🥸' },
+  { id: 'handlebar', label: 'Handlebar', promptValue: 'handlebar mustache', icon: '🥸' },
+  { id: 'mutton-chops', label: 'Costeletas', promptValue: 'mutton chop sideburns', icon: '🧔' },
+];
+
+const glassesStyles: OptionItem[] = [
+  { id: 'none', label: 'Sem Óculos', promptValue: '', icon: '👁️' },
+  { id: 'aviator', label: 'Aviator', promptValue: 'wearing classic aviator sunglasses', icon: '🕶️' },
+  { id: 'round', label: 'Round', promptValue: 'wearing round vintage glasses', icon: '👓' },
+  { id: 'tech-wear', label: 'Tech-wear', promptValue: 'wearing futuristic tech-wear AR glasses', icon: '🥽' },
+  { id: 'reading', label: 'Leitura', promptValue: 'wearing elegant reading glasses', icon: '👓' },
+  { id: 'cat-eye', label: 'Cat Eye', promptValue: 'wearing cat-eye fashion glasses', icon: '😎' },
+  { id: 'cyberpunk', label: 'Cyberpunk', promptValue: 'wearing cyberpunk LED visor glasses', icon: '🤖' },
+];
+
+const piercingsTattoos: OptionItem[] = [
+  { id: 'ear-piercings', label: 'Piercings de Orelha', promptValue: 'with ear piercings and earrings', icon: '👂' },
+  { id: 'nose-ring', label: 'Piercing no Nariz', promptValue: 'with a nose ring piercing', icon: '👃' },
+  { id: 'lip-piercing', label: 'Piercing no Lábio', promptValue: 'with a lip piercing', icon: '💋' },
+  { id: 'eyebrow-piercing', label: 'Piercing na Sobrancelha', promptValue: 'with an eyebrow piercing', icon: '🤨' },
+  { id: 'arm-tattoo', label: 'Tatuagem no Braço', promptValue: 'with detailed arm sleeve tattoo', icon: '💪' },
+  { id: 'neck-tattoo', label: 'Tatuagem no Pescoço', promptValue: 'with a neck tattoo', icon: '🖋️' },
+  { id: 'face-tattoo', label: 'Tatuagem no Rosto', promptValue: 'with subtle face tattoo', icon: '🎭' },
+  { id: 'full-sleeve', label: 'Sleeve Completa', promptValue: 'with full arm sleeve tattoo with intricate designs', icon: '🎨' },
+];
+
+const makeupStyles: OptionItem[] = [
+  { id: 'none', label: 'Sem Maquiagem', promptValue: '', icon: '🧑' },
+  { id: 'natural', label: 'Natural', promptValue: 'with natural minimal makeup', icon: '✨' },
+  { id: 'glam', label: 'Glam', promptValue: 'with glamorous full makeup with smoky eyes', icon: '💄' },
+  { id: 'war-paint', label: 'Pintura de Guerra', promptValue: 'with tribal war paint on the face', icon: '⚔️' },
+  { id: 'cyberpunk-makeup', label: 'Cyberpunk', promptValue: 'with neon cyberpunk-style makeup with glowing accents', icon: '🤖' },
+  { id: 'gothic', label: 'Gótico', promptValue: 'with dark gothic makeup with black lipstick', icon: '🖤' },
+  { id: 'editorial', label: 'Editorial', promptValue: 'with avant-garde editorial makeup', icon: '🎨' },
+  { id: 'fantasy', label: 'Fantasia', promptValue: 'with fantasy-inspired makeup with ethereal glow', icon: '🧚' },
 ];
 
 const features: OptionItem[] = [
-  { id: 'freckles', label: 'Sardas', promptValue: 'with freckles' },
-  { id: 'dimples', label: 'Covinhas', promptValue: 'with dimples' },
-  { id: 'moles', label: 'Pintas', promptValue: 'with beauty marks' },
-  { id: 'glasses', label: 'Óculos', promptValue: 'wearing stylish glasses' },
-  { id: 'beard', label: 'Barba', promptValue: 'with a well-groomed beard' },
-  { id: 'mustache', label: 'Bigode', promptValue: 'with a mustache' },
-  { id: 'tattoos', label: 'Tatuagens', promptValue: 'with visible tattoos' },
-  { id: 'piercings', label: 'Piercings', promptValue: 'with subtle piercings' },
+  { id: 'freckles', label: 'Sardas', promptValue: 'with freckles', icon: '🔵' },
+  { id: 'dimples', label: 'Covinhas', promptValue: 'with dimples', icon: '😊' },
+  { id: 'moles', label: 'Pintas', promptValue: 'with beauty marks', icon: '⚫' },
+  { id: 'scar', label: 'Cicatriz', promptValue: 'with a facial scar', icon: '⚡' },
 ];
 
 const environments: OptionItem[] = [
@@ -186,6 +261,15 @@ const clothingFemale: OptionItem[] = [
   { id: 'activewear', label: 'Roupa Esportiva', promptValue: 'wearing athletic sportswear' },
 ];
 
+// ─── Art Styles (Vibe e Estética) ───
+
+export const artStyles: OptionItem[] = [
+  { id: 'photorealistic', label: 'Realismo Fotográfico', promptValue: 'Ultra-photorealistic professional portrait', icon: '📷' },
+  { id: 'anime-90s', label: 'Anime 90s', promptValue: 'Classic 90s anime style illustration with cel shading', icon: '🎌' },
+  { id: '3d-pixar', label: '3D Render (Pixar)', promptValue: '3D rendered character in Pixar animation style with subsurface scattering', icon: '🧸' },
+  { id: 'digital-painting', label: 'Digital Painting', promptValue: 'Digital painting masterpiece with visible brush strokes and painterly quality', icon: '🖌️' },
+];
+
 // ─── Builder Blocks Config ───
 
 export const getBuilderBlocks = (gender: Gender): BuilderBlock[] => [
@@ -273,6 +357,16 @@ export const appearanceSubBlocks = {
   features: { title: 'Características', options: features, type: 'multi' as const },
 };
 
+export const personalitySubBlocks = {
+  faceShape: { title: 'Formato do Rosto', options: faceShapes, type: 'single' as const },
+  hairCut: { title: 'Corte de Cabelo', options: hairCuts, type: 'single' as const },
+  exoticHairColor: { title: 'Cores Exóticas', options: exoticHairColors, type: 'single' as const },
+  beardStyle: { title: 'Barba / Pelos Faciais', options: beardStyles, type: 'single' as const },
+  glassesStyle: { title: 'Óculos', options: glassesStyles, type: 'single' as const },
+  piercingsTattoos: { title: 'Piercings / Tatuagens', options: piercingsTattoos, type: 'multi' as const },
+  makeupStyle: { title: 'Maquiagem / Pintura', options: makeupStyles, type: 'single' as const },
+};
+
 export const cameraSubBlocks = {
   angle: { title: 'Ângulo', options: cameraAngles, type: 'single' as const },
   framing: { title: 'Enquadramento', options: framings, type: 'single' as const },
@@ -342,6 +436,15 @@ export interface AvatarState {
   customHairColor: string;
   customHairType: string;
   customFeatures: string;
+  // New personality fields
+  faceShape: string;
+  hairCut: string;
+  exoticHairColor: string;
+  beardStyle: string;
+  glassesStyle: string;
+  piercingsTattoos: string[];
+  makeupStyle: string;
+  artStyle: string;
 }
 
 export const defaultAvatarState: Omit<AvatarState, 'gender'> = {
@@ -379,6 +482,15 @@ export const defaultAvatarState: Omit<AvatarState, 'gender'> = {
   customHairColor: '',
   customHairType: '',
   customFeatures: '',
+  // New personality fields
+  faceShape: '',
+  hairCut: '',
+  exoticHairColor: '',
+  beardStyle: '',
+  glassesStyle: '',
+  piercingsTattoos: [],
+  makeupStyle: '',
+  artStyle: 'photorealistic',
 };
 
 // ─── Edit Actions ───
