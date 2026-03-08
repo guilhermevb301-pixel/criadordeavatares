@@ -5,8 +5,20 @@ import { toast } from '@/hooks/use-toast';
 export interface Fala {
   numero: number;
   texto: string;
+  funcao: string;
   intencao: string;
   expressao: string;
+  gesto: string;
+  enquadramento: string;
+}
+
+export interface CloneProfile {
+  comoFala: string;
+  palavrasUsa: string;
+  palavrasEvita: string;
+  nivelEnergia: string;
+  arquetipo: string;
+  tomEmocional: string;
 }
 
 export interface ScriptParams {
@@ -18,15 +30,29 @@ export interface ScriptParams {
   plataforma: string;
   cta: string;
   numFalas: number;
+  cloneProfile?: CloneProfile;
 }
+
+export type TransformAction =
+  | 'mais-natural'
+  | 'mais-persuasiva'
+  | 'encurtar'
+  | 'expandir'
+  | 'variacoes'
+  | 'legenda'
+  | 'prompt-video'
+  | 'teleprompter'
+  | 'mais-agressiva';
 
 export function useScriptGeneration() {
   const [falas, setFalas] = useState<Fala[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [transformedText, setTransformedText] = useState<string | null>(null);
 
   const generate = async (params: ScriptParams) => {
     setIsLoading(true);
     setFalas([]);
+    setTransformedText(null);
     try {
       const { data, error } = await supabase.functions.invoke('generate-script', {
         body: params,
@@ -57,9 +83,8 @@ export function useScriptGeneration() {
   const regenerateFala = async (index: number, params: ScriptParams) => {
     setIsLoading(true);
     try {
-      const singleParams = { ...params, numFalas: 1 };
       const { data, error } = await supabase.functions.invoke('generate-script', {
-        body: singleParams,
+        body: { ...params, numFalas: 1, action: 'regenerar', falaIndex: index, funcaoAlvo: falas[index]?.funcao },
       });
 
       if (error || data?.error) {
@@ -68,7 +93,7 @@ export function useScriptGeneration() {
       }
 
       if (data?.falas?.[0]) {
-        setFalas(prev => prev.map((f, i) => i === index ? { ...data.falas[0], numero: f.numero } : f));
+        setFalas(prev => prev.map((f, i) => i === index ? { ...data.falas[0], numero: f.numero, funcao: f.funcao } : f));
       }
     } catch {
       toast({ title: 'Erro', description: 'Falha na conexão', variant: 'destructive' });
@@ -77,5 +102,64 @@ export function useScriptGeneration() {
     }
   };
 
-  return { falas, isLoading, generate, regenerateFala, setFalas };
+  const transformFala = async (index: number, action: TransformAction, params: ScriptParams) => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-script', {
+        body: {
+          ...params,
+          action,
+          falaOriginal: falas[index]?.texto,
+          funcaoAlvo: falas[index]?.funcao,
+          numFalas: 1,
+        },
+      });
+
+      if (error || data?.error) {
+        toast({ title: 'Erro', description: data?.error || error?.message || 'Erro na transformação', variant: 'destructive' });
+        return;
+      }
+
+      if (data?.falas?.[0]) {
+        setFalas(prev => prev.map((f, i) => i === index ? { ...data.falas[0], numero: f.numero, funcao: f.funcao } : f));
+      }
+    } catch {
+      toast({ title: 'Erro', description: 'Falha na conexão', variant: 'destructive' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const transformAll = async (action: TransformAction, params: ScriptParams) => {
+    setIsLoading(true);
+    setTransformedText(null);
+    try {
+      const isTextTransform = ['legenda', 'prompt-video', 'teleprompter'].includes(action);
+      const { data, error } = await supabase.functions.invoke('generate-script', {
+        body: {
+          ...params,
+          action,
+          falasOriginais: falas.map(f => f.texto),
+        },
+      });
+
+      if (error || data?.error) {
+        toast({ title: 'Erro', description: data?.error || error?.message || 'Erro na transformação', variant: 'destructive' });
+        return;
+      }
+
+      if (isTextTransform && data?.texto) {
+        setTransformedText(data.texto);
+        toast({ title: 'Transformado!', description: 'Texto gerado com sucesso' });
+      } else if (data?.falas && Array.isArray(data.falas)) {
+        setFalas(data.falas);
+      }
+    } catch {
+      toast({ title: 'Erro', description: 'Falha na conexão', variant: 'destructive' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return { falas, isLoading, generate, regenerateFala, transformFala, transformAll, setFalas, transformedText, setTransformedText };
 }
