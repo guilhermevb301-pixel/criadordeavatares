@@ -569,7 +569,10 @@ const AvatarBuilderPage = () => {
             <div className="mb-6">
               <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Personalidade</h3>
               <Accordion type="multiple" defaultValue={['dna-visual']} className="space-y-2">
-                {personalityAccordions.map((acc) => (
+                {(state.useAttachedPhoto
+                  ? personalityAccordions.filter(acc => !['dna-visual', 'estilo-cabelo'].includes(acc.id))
+                  : personalityAccordions
+                ).map((acc) => (
                   <AccordionItem
                     key={acc.id}
                     value={acc.id}
