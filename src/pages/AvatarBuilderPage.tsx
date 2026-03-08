@@ -41,7 +41,7 @@ import {
 } from 'lucide-react';
 import OptionGrid from '@/components/builder/OptionGrid';
 import AvatarPromptCard from '@/components/builder/AvatarPromptCard';
-import AvatarPreview from '@/components/builder/AvatarPreview';
+
 import EditTab from '@/components/builder/EditTab';
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -540,10 +540,10 @@ const AvatarBuilderPage = () => {
         <EditTab />
       ) : (
         <div className="flex flex-1 flex-col lg:flex-row min-h-0">
-          {/* Mobile Preview */}
-          <div className="lg:hidden border-b border-border">
-            <AvatarPreview gender={gender!} prompt={prompt} configVersion={configVersion} onRandomize={randomize} />
-          </div>
+          {/* Mobile Prompt */}
+            <div className="lg:hidden border-b border-border p-5">
+              <AvatarPromptCard prompt={prompt} />
+            </div>
           {/* Builder Column */}
           <div className="flex-1 overflow-y-auto p-6 lg:max-w-[55%]">
             <div className="mb-6">
@@ -732,9 +732,11 @@ const AvatarBuilderPage = () => {
             </div>
           </div>
 
-          {/* Preview Column - desktop */}
-          <div className="hidden lg:flex lg:flex-col lg:w-[45%] border-l border-border">
-            <AvatarPreview gender={gender!} prompt={prompt} configVersion={configVersion} onRandomize={randomize} />
+          {/* Prompt Column - desktop */}
+          <div className="hidden lg:flex lg:flex-col lg:w-[45%] border-l border-border p-6">
+            <div className="sticky top-[57px]">
+              <AvatarPromptCard prompt={prompt} />
+            </div>
           </div>
         </div>
       )}
