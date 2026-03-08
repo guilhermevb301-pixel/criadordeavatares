@@ -8,6 +8,7 @@ import AppLayout from "./components/layout/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import AvatarBuilderPage from "./pages/AvatarBuilderPage";
 import ScriptGeneratorPage from "./pages/ScriptGeneratorPage";
+import UgcGeneratorPage from "./pages/UgcGeneratorPage";
 import SettingsPage from "./pages/SettingsPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
