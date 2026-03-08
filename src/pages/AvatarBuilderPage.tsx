@@ -732,9 +732,11 @@ const AvatarBuilderPage = () => {
             </div>
           </div>
 
-          {/* Preview Column - desktop */}
-          <div className="hidden lg:flex lg:flex-col lg:w-[45%] border-l border-border">
-            <AvatarPreview gender={gender!} prompt={prompt} configVersion={configVersion} onRandomize={randomize} />
+          {/* Prompt Column - desktop */}
+          <div className="hidden lg:flex lg:flex-col lg:w-[45%] border-l border-border p-6">
+            <div className="sticky top-[57px]">
+              <AvatarPromptCard prompt={prompt} />
+            </div>
           </div>
         </div>
       )}
