@@ -1,97 +1,37 @@
 
 
-## Adicionar Campo de Texto Livre em Cada Seção do Builder
+## Plano: Restaurar Gerador UGC + Nova Página de Roteiro Clone
 
-### Resumo
+O gerador de cenas UGC anterior foi substituído pelo gerador de roteiro para clone de IA. O usuário quer ambos como páginas separadas.
 
-Adicionar um campo de texto "Personalizar" (Input) em cada seção de configuracao do avatar (Roupa, Ambiente, Posicao, Angulo de Camera, Expressao, Iluminacao, Estilo Fotografico, Proporcao, e sub-blocos de Aparencia). Isso permite que o usuario digite algo extra como "blusa vermelha" ou "em cima de um predio abandonado" alem das opcoes pre-definidas.
+### Mudanças
 
----
+**1. Manter `/roteiros` como o novo Gerador de Roteiro para Clone (já implementado)**
+- Nenhuma alteração necessária nesta página.
 
-### Como funciona
+**2. Criar nova página `/ugc` — Gerador de Cenas UGC**
+- Recriar o gerador de cenas UGC como página separada em `src/pages/UgcGeneratorPage.tsx`
+- Formulário com: nome do produto, benefício principal, tom de voz, número de cenas (3-6)
+- Estrutura de cada cena: cenário (scene), ação (action), diálogo (120-160 chars)
+- Prompt 1 = hook (menciona produto + benefício), intermediários = desenvolvimento, último = CTA
+- Cenário fixo por conjunto, ações variadas de um pool para evitar repetição
+- Exportação individual como JSON técnico
+- Usar edge function `generate-ugc` com IA para gerar dinamicamente
 
-- Abaixo das opcoes de cada bloco, aparece um campo de texto com placeholder contextualizado (ex: "Ex: blusa vermelha com estampa..." para Roupa, "Ex: em cima de um predio abandonado..." para Ambiente)
-- O texto digitado e incluido no prompt final junto com as opcoes selecionadas
-- Se o usuario so digitar texto sem selecionar opcoes, funciona tambem
+**3. Nova edge function `supabase/functions/generate-ugc/index.ts`**
+- Recebe: produto, benefício, tom, número de cenas
+- Usa `google/gemini-2.5-flash` para gerar as cenas
+- Retorna JSON com array de cenas (scene, action, dialogue, hook/CTA tags)
 
----
+**4. Novo hook `src/hooks/useUgcGeneration.ts`**
+- Encapsula chamada à edge function e gerencia estado
 
-### Arquivos a modificar
+**5. Atualizar navegação**
+- `AppSidebar.tsx`: adicionar item "Cenas UGC" com path `/ugc` e emoji 🎬📝
+- Renomear item existente de "Roteiros UGC" para "Roteiro Clone" no path `/roteiros`
+- `Dashboard.tsx`: adicionar card para Cenas UGC, atualizar card existente para "Roteiro Clone"
+- `App.tsx`: adicionar rota `/ugc` → `UgcGeneratorPage`
 
-#### 1. `src/lib/avatar-config.ts`
-- Adicionar novos campos ao `AvatarState` e `defaultAvatarState`:
-  - `customClothing: string`
-  - `customEnvironment: string`
-  - `customPose: string`
-  - `customCameraAngle: string`
-  - `customCameraFraming: string`
-  - `customExpression: string`
-  - `customLighting: string`
-  - `customPhotoStyle: string`
-  - `customAspectRatio: string`
-  - `customSkinTone: string`
-  - `customEyeColor: string`
-  - `customHairColor: string`
-  - `customHairType: string`
-  - `customFeatures: string`
-
-Todos com default `''`.
-
-#### 2. `src/lib/prompt-engine.ts`
-- Em cada secao do prompt, apos coletar os valores das opcoes pre-definidas, concatenar o campo custom correspondente se preenchido
-- Exemplo para roupa: se `state.customClothing` tem valor, adicionar ao final da secao de roupas
-
-#### 3. `src/pages/AvatarBuilderPage.tsx`
-- Em cada bloco do Accordion (e sub-blocos de appearance e camera), adicionar um `<Input>` abaixo do `<OptionGrid>` com:
-  - Icone de lapis ou emoji
-  - Placeholder contextualizado
-  - Bind ao campo custom correspondente via `updateField`
-
----
-
-### Detalhes tecnicos
-
-**Novos campos no state** (14 campos string, todos default `''`):
-
-```text
-customClothing, customEnvironment, customPose, 
-customCameraAngle, customCameraFraming, customExpression, 
-customLighting, customPhotoStyle, customAspectRatio,
-customSkinTone, customEyeColor, customHairColor, 
-customHairType, customFeatures
-```
-
-**Prompt engine** -- para cada secao, o campo custom e adicionado com virgula apos os valores selecionados. Exemplo para roupa:
-
-```text
-// Antes: "wearing a casual t-shirt layered with wearing a hoodie"
-// Depois: "wearing a casual t-shirt layered with wearing a hoodie, with red color and brand logo"
-```
-
-**UI** -- cada Input segue o padrao:
-
-```text
-<Input
-  value={state.customClothing}
-  onChange={(e) => updateField('customClothing', e.target.value)}
-  placeholder="✏️ Ex: blusa vermelha com estampa..."
-  className="mt-3"
-/>
-```
-
-**Placeholders contextualizados:**
-- Roupa: "Ex: blusa vermelha, terno azul marinho..."
-- Ambiente: "Ex: em cima de um predio abandonado..."
-- Posicao: "Ex: sentado em uma cadeira de escritorio..."
-- Angulo: "Ex: camera de drone vista aerea..."
-- Enquadramento: "Ex: apenas o rosto bem proximo..."
-- Expressao: "Ex: sorriso com os olhos fechados..."
-- Iluminacao: "Ex: luz roxa neon vindo da esquerda..."
-- Estilo Foto: "Ex: foto com lente olho de peixe..."
-- Proporcao: "Ex: formato panoramico ultra-wide..."
-- Tom de Pele: "Ex: pele bronzeada com sardas..."
-- Cor dos Olhos: "Ex: olhos heterocromicos verde e azul..."
-- Cor do Cabelo: "Ex: cabelo com mechas roxas..."
-- Tipo de Cabelo: "Ex: cabelo com trancas box braids..."
-- Caracteristicas: "Ex: cicatriz no queixo, sobrancelha grossa..."
+### Resultado
+Duas ferramentas separadas: `/roteiros` para roteiros de clone IA (falas 80-140 chars) e `/ugc` para cenas UGC (diálogos 120-160 chars com scene/action/JSON export).
 
