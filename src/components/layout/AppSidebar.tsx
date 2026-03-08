@@ -20,8 +20,9 @@ import {
 const navItems = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/', emoji: '🏠' },
   { label: 'Criar Avatar', icon: UserCircle, path: '/avatar', emoji: '🎨' },
-  { label: 'Roteiros UGC', icon: FileText, path: '/roteiros', emoji: '📝' },
-  { label: 'Produção de Vídeo', icon: Video, path: '/video', disabled: true, emoji: '🎬' },
+  { label: 'Roteiro Clone', icon: FileText, path: '/roteiros', emoji: '📝' },
+  { label: 'Cenas UGC', icon: Video, path: '/ugc', emoji: '🎬' },
+  { label: 'Produção de Vídeo', icon: Video, path: '/video', disabled: true, emoji: '🔜' },
   { label: 'Configurações', icon: Settings, path: '/configuracoes', emoji: '⚙️' },
 ];
 

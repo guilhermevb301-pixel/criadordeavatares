@@ -30,6 +30,7 @@ const App = () => (
               <Route path="/" element={<Dashboard />} />
               <Route path="/avatar" element={<AvatarBuilderPage />} />
               <Route path="/roteiros" element={<ScriptGeneratorPage />} />
+              <Route path="/ugc" element={<UgcGeneratorPage />} />
               <Route path="/configuracoes" element={<SettingsPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
