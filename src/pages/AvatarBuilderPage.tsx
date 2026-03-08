@@ -41,7 +41,7 @@ import {
 } from 'lucide-react';
 import OptionGrid from '@/components/builder/OptionGrid';
 import AvatarPromptCard from '@/components/builder/AvatarPromptCard';
-import AvatarPreview from '@/components/builder/AvatarPreview';
+
 import EditTab from '@/components/builder/EditTab';
 
 const iconMap: Record<string, React.ReactNode> = {
