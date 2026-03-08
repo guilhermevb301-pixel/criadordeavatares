@@ -540,10 +540,10 @@ const AvatarBuilderPage = () => {
         <EditTab />
       ) : (
         <div className="flex flex-1 flex-col lg:flex-row min-h-0">
-          {/* Mobile Preview */}
-          <div className="lg:hidden border-b border-border">
-            <AvatarPreview gender={gender!} prompt={prompt} configVersion={configVersion} onRandomize={randomize} />
-          </div>
+          {/* Mobile Prompt */}
+            <div className="lg:hidden border-b border-border p-5">
+              <AvatarPromptCard prompt={prompt} />
+            </div>
           {/* Builder Column */}
           <div className="flex-1 overflow-y-auto p-6 lg:max-w-[55%]">
             <div className="mb-6">
