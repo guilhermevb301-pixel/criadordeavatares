@@ -1,97 +1,105 @@
 
+## Plano: Saída em JSON Premium + Campo de Sotaque + Start Frame em Ambas as Páginas
 
-## Adicionar Campo de Texto Livre em Cada Seção do Builder
+### O que precisa mudar
 
-### Resumo
+**Ambas as páginas (Cenas UGC e Roteiro Clone) precisam:**
 
-Adicionar um campo de texto "Personalizar" (Input) em cada seção de configuracao do avatar (Roupa, Ambiente, Posicao, Angulo de Camera, Expressao, Iluminacao, Estilo Fotografico, Proporcao, e sub-blocos de Aparencia). Isso permite que o usuario digite algo extra como "blusa vermelha" ou "em cima de um predio abandonado" alem das opcoes pre-definidas.
+1. **Novo campo: Sotaque do personagem** — select com opções (Paulistano, Carioca, Mineiro, Gaúcho, Nordestino, Neutro/Nacional, Outro) + campo de texto para descrever o sotaque livre
+2. **Upload de Start Frame** — campo para o usuário anexar a foto/imagem que será usada como frame inicial do vídeo
+3. **Saída em JSON estruturado** — cada cena/fala exportada no formato exato solicitado:
+
+```json
+{
+  "setup": {
+    "scene": "...",
+    "camera": "...",
+    "style": "...",
+    "aspect_ratio": "9:16",
+    "fps": 30,
+    "duration_seconds": 8
+  },
+  "action": {
+    "subject": "...",
+    "movement": "..."
+  },
+  "audio": {
+    "dialogue": "...",
+    "voice": "Voz [gênero] natural, [sotaque], estilo criador de conteúdo."
+  }
+}
+```
 
 ---
 
-### Como funciona
+### Arquivos a editar
 
-- Abaixo das opcoes de cada bloco, aparece um campo de texto com placeholder contextualizado (ex: "Ex: blusa vermelha com estampa..." para Roupa, "Ex: em cima de um predio abandonado..." para Ambiente)
-- O texto digitado e incluido no prompt final junto com as opcoes selecionadas
-- Se o usuario so digitar texto sem selecionar opcoes, funciona tambem
-
----
-
-### Arquivos a modificar
-
-#### 1. `src/lib/avatar-config.ts`
-- Adicionar novos campos ao `AvatarState` e `defaultAvatarState`:
-  - `customClothing: string`
-  - `customEnvironment: string`
-  - `customPose: string`
-  - `customCameraAngle: string`
-  - `customCameraFraming: string`
-  - `customExpression: string`
-  - `customLighting: string`
-  - `customPhotoStyle: string`
-  - `customAspectRatio: string`
-  - `customSkinTone: string`
-  - `customEyeColor: string`
-  - `customHairColor: string`
-  - `customHairType: string`
-  - `customFeatures: string`
-
-Todos com default `''`.
-
-#### 2. `src/lib/prompt-engine.ts`
-- Em cada secao do prompt, apos coletar os valores das opcoes pre-definidas, concatenar o campo custom correspondente se preenchido
-- Exemplo para roupa: se `state.customClothing` tem valor, adicionar ao final da secao de roupas
-
-#### 3. `src/pages/AvatarBuilderPage.tsx`
-- Em cada bloco do Accordion (e sub-blocos de appearance e camera), adicionar um `<Input>` abaixo do `<OptionGrid>` com:
-  - Icone de lapis ou emoji
-  - Placeholder contextualizado
-  - Bind ao campo custom correspondente via `updateField`
+| Arquivo | O que muda |
+|---|---|
+| `src/hooks/useUgcGeneration.ts` | Adicionar `sotaque` e `startFrameUrl` ao `UgcParams`; adaptar interface `UgcScene` para novo schema JSON |
+| `src/hooks/useScriptGeneration.ts` | Adicionar `sotaque` e `startFrameUrl` ao `ScriptParams` |
+| `src/pages/UgcGeneratorPage.tsx` | Adicionar select de sotaque, upload de start frame, botão "Exportar JSON completo" por cena |
+| `src/components/script/ScriptConfigPanel.tsx` | Adicionar select de sotaque e upload de start frame na seção básica |
+| `src/components/script/FalaCard.tsx` | Adicionar botão "Exportar JSON" no formato estruturado por fala |
+| `supabase/functions/generate-ugc/index.ts` | Receber `sotaque` e instruir a IA a incluir a voz com sotaque no campo `audio.voice`; retornar o schema completo |
+| `supabase/functions/generate-script/index.ts` | Receber `sotaque`; incluir na voz gerada para cada fala |
 
 ---
 
-### Detalhes tecnicos
+### Detalhes de cada mudança
 
-**Novos campos no state** (14 campos string, todos default `''`):
+**1. Campo de Sotaque**
+- Select com: Neutro/Nacional, Paulistano, Carioca, Mineiro, Gaúcho, Nordestino, Baiano, Outro
+- Se "Outro": exibe input de texto livre para descrever
+- Passado ao edge function como `sotaque: "Carioca"`
+- A IA usa no campo `audio.voice`: `"Voz feminina natural, espontânea, sotaque carioca, estilo criadora de conteúdo."`
+
+**2. Start Frame**
+- Botão de upload de imagem (aceita jpg/png/webp) — upload local usando `<input type="file">`
+- Preview miniatura da imagem selecionada ao lado do botão
+- O `startFrameUrl` é salvo como base64 data URL para inclusão no JSON exportado
+- Não precisa de storage — fica no estado local, incluído no JSON como referência ao exportar
+
+**3. Formato JSON de saída das Cenas UGC**
+- A edge function `generate-ugc` recebe o sotaque e retorna a estrutura completa em JSON por cena:
+  ```json
+  {
+    "setup": { "scene": "...", "camera": "...", "style": "...", "aspect_ratio": "9:16", "fps": 30, "duration_seconds": 8 },
+    "action": { "subject": "Criadora", "movement": "..." },
+    "audio": { "dialogue": "...", "voice": "Voz feminina natural, sotaque paulistano, estilo criadora de conteúdo." }
+  }
+  ```
+- O botão "Exportar JSON" copia esse objeto completo (incluindo `start_frame` se fornecido)
+- A UI ainda exibe `scene`, `action`, `dialogue` individualmente para legibilidade
+
+**4. Formato JSON de saída do Roteiro Clone**
+- Cada fala do `FalaCard` ganha botão "Exportar JSON" no mesmo schema
+- A edge function passa o sotaque para o campo `audio.voice` gerado
+
+**5. Edge functions**
+- `generate-ugc`: Recebe `sotaque`. Prompt atualizado para retornar por cena um objeto com `setup`, `action`, `audio` completos. O `audio.voice` inclui sotaque.
+- `generate-script`: Recebe `sotaque`. Cada fala do JSON de resposta ganha campo `voice` com sotaque descrito. No export do FalaCard monta o schema completo.
+
+---
+
+### Fluxo de exportação JSON completo (UGC)
 
 ```text
-customClothing, customEnvironment, customPose, 
-customCameraAngle, customCameraFraming, customExpression, 
-customLighting, customPhotoStyle, customAspectRatio,
-customSkinTone, customEyeColor, customHairColor, 
-customHairType, customFeatures
+Usuário preenche: produto, benefício, tom, sotaque, start frame (opcional)
+  → Gera cenas
+  → Cada cena exibe: cenário, ação, diálogo (UI visual)
+  → Botão "📋 JSON" copia:
+    {
+      "start_frame": "data:image/jpeg;base64,...", // se fornecido
+      "setup": { ... },
+      "action": { ... },
+      "audio": { "dialogue": "...", "voice": "sotaque carioca..." }
+    }
 ```
 
-**Prompt engine** -- para cada secao, o campo custom e adicionado com virgula apos os valores selecionados. Exemplo para roupa:
-
-```text
-// Antes: "wearing a casual t-shirt layered with wearing a hoodie"
-// Depois: "wearing a casual t-shirt layered with wearing a hoodie, with red color and brand logo"
-```
-
-**UI** -- cada Input segue o padrao:
-
-```text
-<Input
-  value={state.customClothing}
-  onChange={(e) => updateField('customClothing', e.target.value)}
-  placeholder="✏️ Ex: blusa vermelha com estampa..."
-  className="mt-3"
-/>
-```
-
-**Placeholders contextualizados:**
-- Roupa: "Ex: blusa vermelha, terno azul marinho..."
-- Ambiente: "Ex: em cima de um predio abandonado..."
-- Posicao: "Ex: sentado em uma cadeira de escritorio..."
-- Angulo: "Ex: camera de drone vista aerea..."
-- Enquadramento: "Ex: apenas o rosto bem proximo..."
-- Expressao: "Ex: sorriso com os olhos fechados..."
-- Iluminacao: "Ex: luz roxa neon vindo da esquerda..."
-- Estilo Foto: "Ex: foto com lente olho de peixe..."
-- Proporcao: "Ex: formato panoramico ultra-wide..."
-- Tom de Pele: "Ex: pele bronzeada com sardas..."
-- Cor dos Olhos: "Ex: olhos heterocromicos verde e azul..."
-- Cor do Cabelo: "Ex: cabelo com mechas roxas..."
-- Tipo de Cabelo: "Ex: cabelo com trancas box braids..."
-- Caracteristicas: "Ex: cicatriz no queixo, sobrancelha grossa..."
+### O que NÃO muda
+- Layout visual existente de ambas as páginas
+- Lógica de regeneração de cenas
+- Presets do Roteiro Clone
+- Modo simples/avançado
 
