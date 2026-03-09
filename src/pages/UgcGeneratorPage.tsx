@@ -54,8 +54,8 @@ const UgcGeneratorPage = () => {
     tom: 'casual',
     numCenas: 4,
     sotaque: 'neutro',
-    startFrameDescription: '',
   });
+  const [startFramePreview, setStartFramePreview] = useState<string | null>(null);
 
   const updateField = (field: keyof UgcParams, value: string | number) => {
     setForm(prev => ({ ...prev, [field]: value }));
