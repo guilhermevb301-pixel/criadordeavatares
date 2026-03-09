@@ -2,12 +2,31 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
+export interface UgcSceneSetup {
+  scene: string;
+  camera: string;
+  style: string;
+  aspect_ratio: string;
+  fps: number;
+  duration_seconds: number;
+}
+
+export interface UgcSceneAction {
+  subject: string;
+  movement: string;
+}
+
+export interface UgcSceneAudio {
+  dialogue: string;
+  voice: string;
+}
+
 export interface UgcScene {
   numero: number;
-  scene: string;
-  action: string;
-  dialogue: string;
   type: 'hook' | 'development' | 'cta';
+  setup: UgcSceneSetup;
+  action: UgcSceneAction;
+  audio: UgcSceneAudio;
 }
 
 export interface UgcParams {
@@ -15,6 +34,8 @@ export interface UgcParams {
   beneficio: string;
   tom: string;
   numCenas: number;
+  sotaque: string;
+  startFrameDescription: string;
 }
 
 export function useUgcGeneration() {

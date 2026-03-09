@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Copy, RefreshCw, Shuffle, MessageCircle, Zap, Type, Video, AlignLeft,
-  FileText, X
+  FileText, X, Download
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import FalaCard from './FalaCard';
@@ -28,9 +28,19 @@ const ScriptResultPanel = ({
 }: ScriptResultPanelProps) => {
 
   const handleCopyAll = () => {
-    const fullScript = falas.map(f => `[${f.funcao}] ${f.texto}`).join('\n\n');
+    const fullScript = falas.map(f => `[${f.funcao}] ${f.audio?.dialogue || f.texto || ''}`).join('\n\n');
     navigator.clipboard.writeText(fullScript);
     toast({ title: 'Roteiro copiado!', description: 'Todas as falas foram copiadas' });
+  };
+
+  const handleExportAllJson = () => {
+    const exportData = falas.map(f => ({
+      setup: f.setup,
+      action: f.action,
+      audio: f.audio,
+    }));
+    navigator.clipboard.writeText(JSON.stringify(exportData, null, 2));
+    toast({ title: 'JSON completo copiado! 📋' });
   };
 
   const handleCopyTransformed = () => {
@@ -120,6 +130,9 @@ const ScriptResultPanel = ({
             <Badge variant="secondary" className="text-xs">{params.plataforma?.toUpperCase()}</Badge>
             <Badge variant="outline" className="text-xs">{params.objetivo}</Badge>
             <Badge variant="outline" className="text-xs">{falas.length} falas</Badge>
+            {params.sotaque && params.sotaque !== 'neutro' && (
+              <Badge variant="outline" className="text-xs">🗣️ {params.sotaque}</Badge>
+            )}
           </div>
         </div>
       )}
@@ -129,6 +142,9 @@ const ScriptResultPanel = ({
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" className="text-xs" onClick={handleCopyAll}>
             <Copy className="w-3 h-3" /> Copiar tudo
+          </Button>
+          <Button variant="outline" size="sm" className="text-xs" onClick={handleExportAllJson}>
+            <Download className="w-3 h-3" /> Exportar JSON
           </Button>
           <Button variant="outline" size="sm" className="text-xs" onClick={onRegenerateAll} disabled={isLoading}>
             <RefreshCw className="w-3 h-3" /> Regenerar
@@ -157,7 +173,7 @@ const ScriptResultPanel = ({
       {/* Fala cards */}
       {falas.map((fala, idx) => (
         <FalaCard
-          key={`${fala.numero}-${fala.texto.slice(0, 20)}`}
+          key={`${fala.numero}-${(fala.audio?.dialogue || fala.texto || '').slice(0, 20)}`}
           fala={fala}
           index={idx}
           isLoading={isLoading}

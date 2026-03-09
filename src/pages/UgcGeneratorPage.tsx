@@ -5,9 +5,10 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, RefreshCw, Copy, Download } from 'lucide-react';
-import { useUgcGeneration, UgcParams } from '@/hooks/useUgcGeneration';
+import { Loader2, RefreshCw, Copy, Download, Image } from 'lucide-react';
+import { useUgcGeneration, UgcParams, UgcScene } from '@/hooks/useUgcGeneration';
 import { toast } from '@/hooks/use-toast';
 
 const MIN_CHARS = 120;
@@ -19,6 +20,16 @@ const tonsDeVoz = [
   { value: 'confiante', label: '💪 Confiante' },
   { value: 'amigavel', label: '🤗 Amigável' },
   { value: 'informativo', label: '📚 Informativo' },
+];
+
+const sotaqueOptions = [
+  { value: 'neutro', label: '🇧🇷 Neutro' },
+  { value: 'paulista', label: '🏙️ Paulista' },
+  { value: 'carioca', label: '🏖️ Carioca' },
+  { value: 'mineiro', label: '⛰️ Mineiro' },
+  { value: 'gaucho', label: '🧉 Gaúcho' },
+  { value: 'nordestino', label: '☀️ Nordestino' },
+  { value: 'baiano', label: '🥥 Baiano' },
 ];
 
 const charColor = (len: number) => {
@@ -42,6 +53,8 @@ const UgcGeneratorPage = () => {
     beneficio: '',
     tom: 'casual',
     numCenas: 4,
+    sotaque: 'neutro',
+    startFrameDescription: '',
   });
 
   const updateField = (field: keyof UgcParams, value: string | number) => {
@@ -61,8 +74,13 @@ const UgcGeneratorPage = () => {
     toast({ title: 'Copiado! 📋' });
   };
 
-  const exportSceneJson = (scene: typeof scenes[0]) => {
-    const json = JSON.stringify({ scene: scene.scene, action: scene.action, dialogue: scene.dialogue }, null, 2);
+  const exportSceneJson = (scene: UgcScene) => {
+    const exportObj = {
+      setup: scene.setup,
+      action: scene.action,
+      audio: scene.audio,
+    };
+    const json = JSON.stringify(exportObj, null, 2);
     navigator.clipboard.writeText(json);
     toast({ title: 'JSON copiado! 📋' });
   };
@@ -112,6 +130,17 @@ const UgcGeneratorPage = () => {
             </Select>
           </div>
           <div className="space-y-2">
+            <Label>🗣️ Sotaque</Label>
+            <Select value={form.sotaque} onValueChange={v => updateField('sotaque', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {sotaqueOptions.map(s => (
+                  <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
             <Label>Número de Cenas: {form.numCenas}</Label>
             <Slider
               min={3}
@@ -121,6 +150,24 @@ const UgcGeneratorPage = () => {
               onValueChange={v => updateField('numCenas', v[0])}
               className="mt-2"
             />
+          </div>
+
+          {/* Start Frame Description */}
+          <div className="sm:col-span-2 space-y-2">
+            <Label className="flex items-center gap-2">
+              <Image className="w-4 h-4" />
+              Start Frame (descrição da cena inicial)
+            </Label>
+            <Textarea
+              placeholder="Descreva a foto/cena de referência do start frame. Ex: Banheiro iluminado com luz natural, bancada de mármore branco, criadora segurando o produto na mão direita..."
+              value={form.startFrameDescription}
+              onChange={e => updateField('startFrameDescription', e.target.value)}
+              rows={3}
+              className="resize-none"
+            />
+            <p className="text-[10px] text-muted-foreground">
+              Descreva a imagem/cena de referência para contextualizar o cenário e a ação inicial do vídeo.
+            </p>
           </div>
 
           <div className="sm:col-span-2">
@@ -136,6 +183,7 @@ const UgcGeneratorPage = () => {
           <h2 className="text-xl font-semibold font-display text-foreground">📽️ Cenas Geradas</h2>
           {scenes.map((scene, idx) => {
             const tl = typeLabel(scene.type);
+            const dialogueLen = scene.audio?.dialogue?.length || 0;
             return (
               <Card key={idx} className="overflow-hidden">
                 <CardHeader className="pb-3">
@@ -159,7 +207,7 @@ const UgcGeneratorPage = () => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => copyDialogue(scene.dialogue)}
+                        onClick={() => copyDialogue(scene.audio?.dialogue || '')}
                         title="Copiar diálogo"
                       >
                         <Copy className="h-4 w-4" />
@@ -176,20 +224,36 @@ const UgcGeneratorPage = () => {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <div>
-                    <span className="text-xs font-medium text-muted-foreground">🎬 Cenário</span>
-                    <p className="text-sm text-foreground">{scene.scene}</p>
+                  {/* Setup */}
+                  <div className="space-y-1">
+                    <span className="text-xs font-semibold text-primary">📐 Setup</span>
+                    <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                      <div>🎬 <span className="font-medium text-foreground">{scene.setup?.scene}</span></div>
+                      <div>📷 <span className="font-medium text-foreground">{scene.setup?.camera}</span></div>
+                      <div>🎨 <span className="font-medium text-foreground">{scene.setup?.style}</span></div>
+                      <div>📐 <span className="font-medium text-foreground">{scene.setup?.aspect_ratio} · {scene.setup?.fps}fps · {scene.setup?.duration_seconds}s</span></div>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-xs font-medium text-muted-foreground">🎭 Ação</span>
-                    <p className="text-sm text-foreground">{scene.action}</p>
+
+                  {/* Action */}
+                  <div className="space-y-1">
+                    <span className="text-xs font-semibold text-primary">🎭 Action</span>
+                    <div className="text-xs text-muted-foreground">
+                      <div>👤 <span className="font-medium text-foreground">{scene.action?.subject}</span></div>
+                      <div>🏃 <span className="font-medium text-foreground">{scene.action?.movement}</span></div>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-xs font-medium text-muted-foreground">💬 Diálogo</span>
-                    <p className="text-sm text-foreground leading-relaxed">{scene.dialogue}</p>
-                    <span className={`text-xs font-mono ${charColor(scene.dialogue.length)}`}>
-                      {scene.dialogue.length} chars {scene.dialogue.length >= MIN_CHARS && scene.dialogue.length <= MAX_CHARS ? '✅' : '⚠️'}
-                    </span>
+
+                  {/* Audio */}
+                  <div className="space-y-1">
+                    <span className="text-xs font-semibold text-primary">🔊 Audio</span>
+                    <p className="text-sm text-foreground leading-relaxed">"{scene.audio?.dialogue}"</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">🎤 {scene.audio?.voice}</span>
+                      <span className={`text-xs font-mono ${charColor(dialogueLen)}`}>
+                        {dialogueLen} chars {dialogueLen >= MIN_CHARS && dialogueLen <= MAX_CHARS ? '✅' : '⚠️'}
+                      </span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
