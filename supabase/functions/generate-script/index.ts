@@ -122,9 +122,12 @@ Retorne APENAS JSON válido no formato estruturado:
     const systemPrompt = buildMainSystemPrompt(nFalas, funcoes, cloneCtx, sotaque, startFrameText);
     const userPrompt = buildUserPrompt(tema, objetivo, publicoAlvo, estiloFala, personalidade, plataforma, cta, nFalas, sotaque);
 
+    // Build multimodal user message if image provided
+    const userMessage = buildUserMessage(userPrompt, startFrameBase64);
+
     const resp = await callAI(LOVABLE_API_KEY, [
       { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt },
+      userMessage,
     ]);
     return jsonResponse(resp);
 
