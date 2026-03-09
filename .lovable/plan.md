@@ -1,105 +1,95 @@
 
-## Plano: Saída em JSON Premium + Campo de Sotaque + Start Frame em Ambas as Páginas
 
-### O que precisa mudar
+## Plano: Output JSON estruturado + campo de sotaque nos geradores UGC e Roteiro
 
-**Ambas as páginas (Cenas UGC e Roteiro Clone) precisam:**
+### O que muda
 
-1. **Novo campo: Sotaque do personagem** — select com opções (Paulistano, Carioca, Mineiro, Gaúcho, Nordestino, Neutro/Nacional, Outro) + campo de texto para descrever o sotaque livre
-2. **Upload de Start Frame** — campo para o usuário anexar a foto/imagem que será usada como frame inicial do vídeo
-3. **Saída em JSON estruturado** — cada cena/fala exportada no formato exato solicitado:
+Ambos os geradores (Cenas UGC e Roteiro Clone) precisam:
+1. **Novo campo "Sotaque"** na UI de configuração
+2. **Novo campo "Start Frame" (upload de imagem)** na UI - o usuário anexa uma foto de referência e a descrição é incluída no prompt
+3. **Output no formato JSON estruturado** com `setup`, `action`, `audio` (conforme a estrutura que você enviou)
 
+### Arquivos a modificar
+
+#### 1. Edge Function `supabase/functions/generate-ugc/index.ts`
+- Aceitar novos campos: `sotaque`, `startFrameDescription`
+- Mudar o prompt do sistema para pedir output no novo formato JSON:
+  ```json
+  {
+    "setup": { "scene", "camera", "style", "aspect_ratio", "fps", "duration_seconds" },
+    "action": { "subject", "movement" },
+    "audio": { "dialogue", "voice" }
+  }
+  ```
+- Incluir o sotaque na descrição da voz (`audio.voice`)
+- Incluir a descrição do start frame no `setup.scene` e `action`
+- Cada cena retorna um objeto nesse formato (array de objetos)
+
+#### 2. Edge Function `supabase/functions/generate-script/index.ts`
+- Aceitar novos campos: `sotaque`, `startFrameDescription`
+- Mudar o formato de saída para o mesmo JSON estruturado (setup/action/audio)
+- Incluir sotaque na voz gerada
+- Incluir start frame description no contexto
+
+#### 3. Hook `src/hooks/useUgcGeneration.ts`
+- Atualizar `UgcScene` interface para o novo formato JSON (setup/action/audio)
+- Adicionar `sotaque` e `startFrameDescription` ao `UgcParams`
+
+#### 4. Hook `src/hooks/useScriptGeneration.ts`
+- Atualizar `Fala` interface para o novo formato JSON (setup/action/audio)
+- Adicionar `sotaque` e `startFrameDescription` ao `ScriptParams`
+
+#### 5. `src/pages/UgcGeneratorPage.tsx`
+- Adicionar campo Select de **Sotaque** (ex: Paulista, Carioca, Mineiro, Gaúcho, Nordestino, Neutro)
+- Adicionar botão de **upload de imagem** para start frame com preview
+- Atualizar cards de resultado para exibir o novo formato JSON (setup/action/audio)
+- Botão "Exportar JSON" agora exporta no formato correto
+- Adicionar botão "Copiar Prompt" que copia o JSON completo da cena
+
+#### 6. `src/components/script/ScriptConfigPanel.tsx`
+- Adicionar campo Select de **Sotaque**
+- Adicionar upload de **start frame** com preview
+
+#### 7. `src/components/script/FalaCard.tsx`
+- Atualizar para exibir o novo formato (setup/action/audio) em vez do formato atual
+- Manter ações de copiar, regenerar, transformar
+
+#### 8. `src/components/script/ScriptResultPanel.tsx`
+- Ajustar para renderizar o novo formato de dados
+
+### Sotaques disponíveis
+- Neutro (padrão)
+- Paulista
+- Carioca
+- Mineiro
+- Gaúcho
+- Nordestino
+- Baiano
+
+### Start Frame
+- Upload de imagem via chat/input na UI
+- A imagem é descrita pelo usuário em texto (campo de texto "Descreva a cena inicial / start frame")
+- Essa descrição é enviada junto ao prompt para contextualizar o cenário
+
+### Formato final de cada cena/fala (output)
 ```json
 {
   "setup": {
-    "scene": "...",
-    "camera": "...",
-    "style": "...",
+    "scene": "descrição do cenário",
+    "camera": "enquadramento e ângulo",
+    "style": "estilo visual",
     "aspect_ratio": "9:16",
     "fps": 30,
     "duration_seconds": 8
   },
   "action": {
-    "subject": "...",
-    "movement": "..."
+    "subject": "Criadora",
+    "movement": "ação detalhada"
   },
   "audio": {
-    "dialogue": "...",
-    "voice": "Voz [gênero] natural, [sotaque], estilo criador de conteúdo."
+    "dialogue": "fala do personagem",
+    "voice": "descrição da voz com sotaque"
   }
 }
 ```
-
----
-
-### Arquivos a editar
-
-| Arquivo | O que muda |
-|---|---|
-| `src/hooks/useUgcGeneration.ts` | Adicionar `sotaque` e `startFrameUrl` ao `UgcParams`; adaptar interface `UgcScene` para novo schema JSON |
-| `src/hooks/useScriptGeneration.ts` | Adicionar `sotaque` e `startFrameUrl` ao `ScriptParams` |
-| `src/pages/UgcGeneratorPage.tsx` | Adicionar select de sotaque, upload de start frame, botão "Exportar JSON completo" por cena |
-| `src/components/script/ScriptConfigPanel.tsx` | Adicionar select de sotaque e upload de start frame na seção básica |
-| `src/components/script/FalaCard.tsx` | Adicionar botão "Exportar JSON" no formato estruturado por fala |
-| `supabase/functions/generate-ugc/index.ts` | Receber `sotaque` e instruir a IA a incluir a voz com sotaque no campo `audio.voice`; retornar o schema completo |
-| `supabase/functions/generate-script/index.ts` | Receber `sotaque`; incluir na voz gerada para cada fala |
-
----
-
-### Detalhes de cada mudança
-
-**1. Campo de Sotaque**
-- Select com: Neutro/Nacional, Paulistano, Carioca, Mineiro, Gaúcho, Nordestino, Baiano, Outro
-- Se "Outro": exibe input de texto livre para descrever
-- Passado ao edge function como `sotaque: "Carioca"`
-- A IA usa no campo `audio.voice`: `"Voz feminina natural, espontânea, sotaque carioca, estilo criadora de conteúdo."`
-
-**2. Start Frame**
-- Botão de upload de imagem (aceita jpg/png/webp) — upload local usando `<input type="file">`
-- Preview miniatura da imagem selecionada ao lado do botão
-- O `startFrameUrl` é salvo como base64 data URL para inclusão no JSON exportado
-- Não precisa de storage — fica no estado local, incluído no JSON como referência ao exportar
-
-**3. Formato JSON de saída das Cenas UGC**
-- A edge function `generate-ugc` recebe o sotaque e retorna a estrutura completa em JSON por cena:
-  ```json
-  {
-    "setup": { "scene": "...", "camera": "...", "style": "...", "aspect_ratio": "9:16", "fps": 30, "duration_seconds": 8 },
-    "action": { "subject": "Criadora", "movement": "..." },
-    "audio": { "dialogue": "...", "voice": "Voz feminina natural, sotaque paulistano, estilo criadora de conteúdo." }
-  }
-  ```
-- O botão "Exportar JSON" copia esse objeto completo (incluindo `start_frame` se fornecido)
-- A UI ainda exibe `scene`, `action`, `dialogue` individualmente para legibilidade
-
-**4. Formato JSON de saída do Roteiro Clone**
-- Cada fala do `FalaCard` ganha botão "Exportar JSON" no mesmo schema
-- A edge function passa o sotaque para o campo `audio.voice` gerado
-
-**5. Edge functions**
-- `generate-ugc`: Recebe `sotaque`. Prompt atualizado para retornar por cena um objeto com `setup`, `action`, `audio` completos. O `audio.voice` inclui sotaque.
-- `generate-script`: Recebe `sotaque`. Cada fala do JSON de resposta ganha campo `voice` com sotaque descrito. No export do FalaCard monta o schema completo.
-
----
-
-### Fluxo de exportação JSON completo (UGC)
-
-```text
-Usuário preenche: produto, benefício, tom, sotaque, start frame (opcional)
-  → Gera cenas
-  → Cada cena exibe: cenário, ação, diálogo (UI visual)
-  → Botão "📋 JSON" copia:
-    {
-      "start_frame": "data:image/jpeg;base64,...", // se fornecido
-      "setup": { ... },
-      "action": { ... },
-      "audio": { "dialogue": "...", "voice": "sotaque carioca..." }
-    }
-```
-
-### O que NÃO muda
-- Layout visual existente de ambas as páginas
-- Lógica de regeneração de cenas
-- Presets do Roteiro Clone
-- Modo simples/avançado
 
