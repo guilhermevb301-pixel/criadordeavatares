@@ -203,7 +203,20 @@ ${extra || ""}
 LEMBRE: cada fala entre 80-140 caracteres. Conte com precisão. Use o formato JSON estruturado com setup/action/audio.`;
 }
 
-async function callAI(apiKey: string, messages: Array<{role: string; content: string}>) {
+function buildUserMessage(textContent: string, startFrameBase64?: string): {role: string; content: any} {
+  if (startFrameBase64) {
+    return {
+      role: "user",
+      content: [
+        { type: "image_url", image_url: { url: startFrameBase64 } },
+        { type: "text", text: `Esta é a foto do start frame. Analise todos os detalhes visuais e use como referência.\n\n${textContent}` },
+      ],
+    };
+  }
+  return { role: "user", content: textContent };
+}
+
+async function callAI(apiKey: string, messages: Array<{role: string; content: any}>) {
   const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
     headers: {
