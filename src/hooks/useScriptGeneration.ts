@@ -55,7 +55,7 @@ export interface ScriptParams {
   numFalas: number;
   cloneProfile?: CloneProfile;
   sotaque?: string;
-  startFrameDescription?: string;
+  startFrameBase64?: string;
 }
 
 export type TransformAction =

@@ -26,7 +26,7 @@ serve(async (req) => {
     const funcoes = funcaoMap[nFalas] || funcaoMap[3];
 
     const sotaqueText = sotaque && sotaque !== 'neutro' ? `, com sotaque ${sotaque}` : '';
-    const startFrameText = startFrameDescription ? `\nREFERÊNCIA DE START FRAME: ${startFrameDescription}` : '';
+    const startFrameText = startFrameBase64 ? '\nIMPORTANTE: Uma foto do start frame foi anexada. Analise a imagem e use o cenário, objetos, iluminação e posição como base para todas as cenas.' : '';
 
     // Build clone profile context
     let cloneCtx = "";

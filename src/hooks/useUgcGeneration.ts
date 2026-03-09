@@ -35,7 +35,7 @@ export interface UgcParams {
   tom: string;
   numCenas: number;
   sotaque: string;
-  startFrameDescription: string;
+  startFrameBase64?: string;
 }
 
 export function useUgcGeneration() {
