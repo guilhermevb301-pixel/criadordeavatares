@@ -68,7 +68,8 @@ const ScriptConfigPanel = ({ isLoading, onGenerate }: ScriptConfigPanelProps) =>
   const [isAdvanced, setIsAdvanced] = useState(false);
   const [activePreset, setActivePreset] = useState<string | null>(null);
   const [sotaque, setSotaque] = useState('neutro');
-  const [startFrameDescription, setStartFrameDescription] = useState('');
+  const [startFrameBase64, setStartFrameBase64] = useState<string | undefined>();
+  const [startFramePreview, setStartFramePreview] = useState<string | null>(null);
 
   // Clone profile
   const [comoFala, setComoFala] = useState('');
