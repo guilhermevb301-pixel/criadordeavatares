@@ -82,7 +82,7 @@ const ScriptConfigPanel = ({ isLoading, onGenerate }: ScriptConfigPanelProps) =>
   const canGenerate = tema && objetivo && publicoAlvo && estiloFala && personalidade && plataforma;
 
   const getParams = (): ScriptParams => {
-    const params: ScriptParams = { tema, objetivo, publicoAlvo, estiloFala, personalidade, plataforma, cta, numFalas, sotaque, startFrameDescription };
+    const params: ScriptParams = { tema, objetivo, publicoAlvo, estiloFala, personalidade, plataforma, cta, numFalas, sotaque, startFrameBase64 };
     if (isAdvanced) {
       params.cloneProfile = { comoFala, palavrasUsa, palavrasEvita, nivelEnergia, arquetipo, tomEmocional };
     }
