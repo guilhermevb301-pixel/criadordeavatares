@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
-import { Textarea } from '@/components/ui/textarea';
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, RefreshCw, Copy, Download, Image } from 'lucide-react';
 import { useUgcGeneration, UgcParams, UgcScene } from '@/hooks/useUgcGeneration';
@@ -54,8 +54,8 @@ const UgcGeneratorPage = () => {
     tom: 'casual',
     numCenas: 4,
     sotaque: 'neutro',
-    startFrameDescription: '',
   });
+  const [startFramePreview, setStartFramePreview] = useState<string | null>(null);
 
   const updateField = (field: keyof UgcParams, value: string | number) => {
     setForm(prev => ({ ...prev, [field]: value }));
@@ -152,21 +152,52 @@ const UgcGeneratorPage = () => {
             />
           </div>
 
-          {/* Start Frame Description */}
+          {/* Start Frame Upload */}
           <div className="sm:col-span-2 space-y-2">
             <Label className="flex items-center gap-2">
               <Image className="w-4 h-4" />
-              Start Frame (descrição da cena inicial)
+              📷 Start Frame (foto da cena inicial)
             </Label>
-            <Textarea
-              placeholder="Descreva a foto/cena de referência do start frame. Ex: Banheiro iluminado com luz natural, bancada de mármore branco, criadora segurando o produto na mão direita..."
-              value={form.startFrameDescription}
-              onChange={e => updateField('startFrameDescription', e.target.value)}
-              rows={3}
-              className="resize-none"
-            />
+            {startFramePreview ? (
+              <div className="relative">
+                <img src={startFramePreview} alt="Start frame" className="w-full max-h-48 object-cover rounded-md border border-border" />
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="absolute top-2 right-2"
+                  onClick={() => { setStartFramePreview(null); setForm(prev => ({ ...prev, startFrameBase64: undefined })); }}
+                >
+                  Remover
+                </Button>
+              </div>
+            ) : (
+              <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-border rounded-md cursor-pointer hover:bg-secondary/30 transition-colors">
+                <Image className="w-8 h-8 text-muted-foreground mb-1" />
+                <span className="text-sm text-muted-foreground">Clique para anexar a foto</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    if (file.size > 5 * 1024 * 1024) {
+                      toast({ title: 'Arquivo muito grande', description: 'Máximo 5MB', variant: 'destructive' });
+                      return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                      const base64 = ev.target?.result as string;
+                      setStartFramePreview(base64);
+                      setForm(prev => ({ ...prev, startFrameBase64: base64 }));
+                    };
+                    reader.readAsDataURL(file);
+                  }}
+                />
+              </label>
+            )}
             <p className="text-[10px] text-muted-foreground">
-              Descreva a imagem/cena de referência para contextualizar o cenário e a ação inicial do vídeo.
+              Anexe a foto de referência do start frame. A IA vai analisar a imagem para gerar as cenas.
             </p>
           </div>
 

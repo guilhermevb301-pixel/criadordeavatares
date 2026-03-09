@@ -4,9 +4,9 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sparkles, Loader2, Settings2, User, Image } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 import PresetChips from './PresetChips';
 import type { ScriptPreset } from '@/lib/script-presets';
 import type { ScriptParams, CloneProfile } from '@/hooks/useScriptGeneration';
@@ -68,7 +68,8 @@ const ScriptConfigPanel = ({ isLoading, onGenerate }: ScriptConfigPanelProps) =>
   const [isAdvanced, setIsAdvanced] = useState(false);
   const [activePreset, setActivePreset] = useState<string | null>(null);
   const [sotaque, setSotaque] = useState('neutro');
-  const [startFrameDescription, setStartFrameDescription] = useState('');
+  const [startFrameBase64, setStartFrameBase64] = useState<string | undefined>();
+  const [startFramePreview, setStartFramePreview] = useState<string | null>(null);
 
   // Clone profile
   const [comoFala, setComoFala] = useState('');
@@ -81,7 +82,7 @@ const ScriptConfigPanel = ({ isLoading, onGenerate }: ScriptConfigPanelProps) =>
   const canGenerate = tema && objetivo && publicoAlvo && estiloFala && personalidade && plataforma;
 
   const getParams = (): ScriptParams => {
-    const params: ScriptParams = { tema, objetivo, publicoAlvo, estiloFala, personalidade, plataforma, cta, numFalas, sotaque, startFrameDescription };
+    const params: ScriptParams = { tema, objetivo, publicoAlvo, estiloFala, personalidade, plataforma, cta, numFalas, sotaque, startFrameBase64 };
     if (isAdvanced) {
       params.cloneProfile = { comoFala, palavrasUsa, palavrasEvita, nivelEnergia, arquetipo, tomEmocional };
     }
@@ -184,21 +185,52 @@ const ScriptConfigPanel = ({ isLoading, onGenerate }: ScriptConfigPanelProps) =>
             <Input value={cta} onChange={e => setCta(e.target.value)} placeholder="Ex: Clique no link da bio e comece agora" className="bg-secondary/30 border-border" />
           </div>
 
-          {/* Start Frame */}
+          {/* Start Frame Upload */}
           <div className="space-y-2">
             <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
               <Image className="w-3.5 h-3.5" />
-              Start Frame (descrição da cena inicial)
+              📷 Start Frame (foto da cena inicial)
             </Label>
-            <Textarea
-              value={startFrameDescription}
-              onChange={e => setStartFrameDescription(e.target.value)}
-              placeholder="Descreva a foto/cena de referência do start frame. Ex: Escritório moderno, pessoa sentada na cadeira, notebook aberto..."
-              rows={3}
-              className="bg-secondary/30 border-border resize-none"
-            />
+            {startFramePreview ? (
+              <div className="relative">
+                <img src={startFramePreview} alt="Start frame" className="w-full max-h-36 object-cover rounded-md border border-border" />
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="absolute top-1 right-1"
+                  onClick={() => { setStartFramePreview(null); setStartFrameBase64(undefined); }}
+                >
+                  ✕
+                </Button>
+              </div>
+            ) : (
+              <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-border rounded-md cursor-pointer hover:bg-secondary/30 transition-colors">
+                <Image className="w-6 h-6 text-muted-foreground mb-1" />
+                <span className="text-xs text-muted-foreground">Clique para anexar a foto</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    if (file.size > 5 * 1024 * 1024) {
+                      toast({ title: 'Arquivo muito grande', description: 'Máximo 5MB', variant: 'destructive' });
+                      return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                      const base64 = ev.target?.result as string;
+                      setStartFramePreview(base64);
+                      setStartFrameBase64(base64);
+                    };
+                    reader.readAsDataURL(file);
+                  }}
+                />
+              </label>
+            )}
             <p className="text-[10px] text-muted-foreground">
-              Descreva a imagem de referência para contextualizar cenário e ação inicial.
+              Anexe a foto de referência. A IA vai analisar a imagem para gerar o roteiro.
             </p>
           </div>
 

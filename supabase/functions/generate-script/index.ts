@@ -17,7 +17,7 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { tema, objetivo, publicoAlvo, estiloFala, personalidade, plataforma, cta, numFalas, cloneProfile, action, falaOriginal, falasOriginais, funcaoAlvo, sotaque, startFrameDescription } = body;
+    const { tema, objetivo, publicoAlvo, estiloFala, personalidade, plataforma, cta, numFalas, cloneProfile, action, falaOriginal, falasOriginais, funcaoAlvo, sotaque, startFrameBase64 } = body;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
@@ -26,7 +26,7 @@ serve(async (req) => {
     const funcoes = funcaoMap[nFalas] || funcaoMap[3];
 
     const sotaqueText = sotaque && sotaque !== 'neutro' ? `, com sotaque ${sotaque}` : '';
-    const startFrameText = startFrameDescription ? `\nREFERÊNCIA DE START FRAME: ${startFrameDescription}` : '';
+    const startFrameText = startFrameBase64 ? '\nIMPORTANTE: Uma foto do start frame foi anexada. Analise a imagem e use o cenário, objetos, iluminação e posição como base para todas as cenas.' : '';
 
     // Build clone profile context
     let cloneCtx = "";
@@ -122,9 +122,12 @@ Retorne APENAS JSON válido no formato estruturado:
     const systemPrompt = buildMainSystemPrompt(nFalas, funcoes, cloneCtx, sotaque, startFrameText);
     const userPrompt = buildUserPrompt(tema, objetivo, publicoAlvo, estiloFala, personalidade, plataforma, cta, nFalas, sotaque);
 
+    // Build multimodal user message if image provided
+    const userMessage = buildUserMessage(userPrompt, startFrameBase64);
+
     const resp = await callAI(LOVABLE_API_KEY, [
       { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt },
+      userMessage,
     ]);
     return jsonResponse(resp);
 
@@ -200,7 +203,20 @@ ${extra || ""}
 LEMBRE: cada fala entre 80-140 caracteres. Conte com precisão. Use o formato JSON estruturado com setup/action/audio.`;
 }
 
-async function callAI(apiKey: string, messages: Array<{role: string; content: string}>) {
+function buildUserMessage(textContent: string, startFrameBase64?: string): {role: string; content: any} {
+  if (startFrameBase64) {
+    return {
+      role: "user",
+      content: [
+        { type: "image_url", image_url: { url: startFrameBase64 } },
+        { type: "text", text: `Esta é a foto do start frame. Analise todos os detalhes visuais e use como referência.\n\n${textContent}` },
+      ],
+    };
+  }
+  return { role: "user", content: textContent };
+}
+
+async function callAI(apiKey: string, messages: Array<{role: string; content: any}>) {
   const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
     headers: {

@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { produto, beneficio, tom, numCenas, sotaque, startFrameDescription } = await req.json();
+    const { produto, beneficio, tom, numCenas, sotaque, startFrameBase64 } = await req.json();
 
     if (!produto || !beneficio || !tom || !numCenas) {
       return new Response(JSON.stringify({ error: 'Campos obrigatórios: produto, beneficio, tom, numCenas' }), {
@@ -22,7 +22,6 @@ serve(async (req) => {
     }
 
     const sotaqueText = sotaque && sotaque !== 'neutro' ? `, com sotaque ${sotaque}` : '';
-    const startFrameText = startFrameDescription ? `\n\nREFERÊNCIA DE START FRAME (use como base para o cenário e ação inicial): ${startFrameDescription}` : '';
 
     const systemPrompt = `Você é um roteirista especialista em conteúdo UGC (User Generated Content) para redes sociais.
 
@@ -40,7 +39,7 @@ Regras obrigatórias:
 - A voz deve refletir o sotaque: ${sotaque || 'neutro'}
 - Linguagem natural, humana, sem clichês, própria para vídeo curto
 - Conecte as falas para ter continuidade narrativa
-${startFrameText}
+${startFrameBase64 ? '\nIMPORTANTE: Uma foto do start frame foi anexada. Analise a imagem com atenção e use o cenário, objetos, iluminação, posição da pessoa e todos os detalhes visuais como base para gerar o setup.scene, action e o contexto de TODAS as cenas.' : ''}
 
 Retorne APENAS um JSON válido no formato:
 {
@@ -49,16 +48,16 @@ Retorne APENAS um JSON válido no formato:
       "numero": 1,
       "type": "hook|development|cta",
       "setup": {
-        "scene": "descrição detalhada do cenário",
-        "camera": "enquadramento e ângulo de câmera (ex: Plano médio, câmera estável, enquadramento vertical 9:16)",
-        "style": "estilo visual do vídeo (ex: Vídeo publicitário UGC, natural, limpo, realista)",
+        "scene": "descrição detalhada do cenário baseada na foto",
+        "camera": "enquadramento e ângulo de câmera",
+        "style": "estilo visual do vídeo",
         "aspect_ratio": "9:16",
         "fps": 30,
         "duration_seconds": 8
       },
       "action": {
         "subject": "Criadora",
-        "movement": "ação específica e detalhada do criador nesta cena"
+        "movement": "ação específica e detalhada"
       },
       "audio": {
         "dialogue": "texto da fala entre 120-160 chars",
@@ -76,6 +75,19 @@ Retorne APENAS um JSON válido no formato:
       });
     }
 
+    // Build messages - multimodal if image provided
+    const userContent: any[] = [];
+    if (startFrameBase64) {
+      userContent.push({
+        type: "image_url",
+        image_url: { url: startFrameBase64 }
+      });
+    }
+    userContent.push({
+      type: "text",
+      text: `${startFrameBase64 ? 'Esta é a foto do start frame. Analise todos os detalhes visuais (cenário, iluminação, objetos, posição da pessoa) e use como referência para gerar as cenas.\n\n' : ''}Gere ${numCenas} cenas UGC para o produto "${produto}" com benefício "${beneficio}" no tom "${tom}"${sotaqueText}.`
+    });
+
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -86,43 +98,48 @@ Retorne APENAS um JSON válido no formato:
         model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Gere ${numCenas} cenas UGC para o produto "${produto}" com benefício "${beneficio}" no tom "${tom}"${sotaqueText}.` },
+          { role: 'user', content: userContent },
         ],
         temperature: 0.8,
       }),
     });
 
     if (!response.ok) {
+      if (response.status === 429) {
+        return new Response(JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente em alguns instantes.' }), {
+          status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ error: 'Créditos insuficientes.' }), {
+          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
       const errorText = await response.text();
       console.error('AI API error:', errorText);
       return new Response(JSON.stringify({ error: 'Erro ao chamar IA' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content || '';
-
     const jsonStr = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       return new Response(JSON.stringify({ error: 'Resposta inválida da IA' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     const parsed = JSON.parse(jsonMatch[0]);
-
     return new Response(JSON.stringify(parsed), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
     console.error('Error:', error);
     return new Response(JSON.stringify({ error: 'Erro interno do servidor' }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 });
