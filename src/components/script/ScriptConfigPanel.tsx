@@ -4,8 +4,9 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sparkles, Loader2, Settings2, User } from 'lucide-react';
+import { Sparkles, Loader2, Settings2, User, Image } from 'lucide-react';
 import PresetChips from './PresetChips';
 import type { ScriptPreset } from '@/lib/script-presets';
 import type { ScriptParams, CloneProfile } from '@/hooks/useScriptGeneration';
@@ -23,6 +24,16 @@ const plataformaOptions = [
   { id: 'reels', label: '📸 Reels' },
   { id: 'shorts', label: '▶️ Shorts' },
   { id: 'linkedin', label: '💼 LinkedIn' },
+];
+
+const sotaqueOptions = [
+  { id: 'neutro', label: '🇧🇷 Neutro' },
+  { id: 'paulista', label: '🏙️ Paulista' },
+  { id: 'carioca', label: '🏖️ Carioca' },
+  { id: 'mineiro', label: '⛰️ Mineiro' },
+  { id: 'gaucho', label: '🧉 Gaúcho' },
+  { id: 'nordestino', label: '☀️ Nordestino' },
+  { id: 'baiano', label: '🥥 Baiano' },
 ];
 
 const arquetipoOptions = [
@@ -56,6 +67,8 @@ const ScriptConfigPanel = ({ isLoading, onGenerate }: ScriptConfigPanelProps) =>
   const [numFalas, setNumFalas] = useState(3);
   const [isAdvanced, setIsAdvanced] = useState(false);
   const [activePreset, setActivePreset] = useState<string | null>(null);
+  const [sotaque, setSotaque] = useState('neutro');
+  const [startFrameDescription, setStartFrameDescription] = useState('');
 
   // Clone profile
   const [comoFala, setComoFala] = useState('');
@@ -68,7 +81,7 @@ const ScriptConfigPanel = ({ isLoading, onGenerate }: ScriptConfigPanelProps) =>
   const canGenerate = tema && objetivo && publicoAlvo && estiloFala && personalidade && plataforma;
 
   const getParams = (): ScriptParams => {
-    const params: ScriptParams = { tema, objetivo, publicoAlvo, estiloFala, personalidade, plataforma, cta, numFalas };
+    const params: ScriptParams = { tema, objetivo, publicoAlvo, estiloFala, personalidade, plataforma, cta, numFalas, sotaque, startFrameDescription };
     if (isAdvanced) {
       params.cloneProfile = { comoFala, palavrasUsa, palavrasEvita, nivelEnergia, arquetipo, tomEmocional };
     }
@@ -153,9 +166,40 @@ const ScriptConfigPanel = ({ isLoading, onGenerate }: ScriptConfigPanelProps) =>
             </div>
           </div>
 
+          {/* Sotaque */}
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">🗣️ Sotaque do personagem</Label>
+            <Select value={sotaque} onValueChange={setSotaque}>
+              <SelectTrigger className="bg-secondary/30 border-border"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {sotaqueOptions.map(opt => (
+                  <SelectItem key={opt.id} value={opt.id}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">📢 CTA final (opcional)</Label>
             <Input value={cta} onChange={e => setCta(e.target.value)} placeholder="Ex: Clique no link da bio e comece agora" className="bg-secondary/30 border-border" />
+          </div>
+
+          {/* Start Frame */}
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <Image className="w-3.5 h-3.5" />
+              Start Frame (descrição da cena inicial)
+            </Label>
+            <Textarea
+              value={startFrameDescription}
+              onChange={e => setStartFrameDescription(e.target.value)}
+              placeholder="Descreva a foto/cena de referência do start frame. Ex: Escritório moderno, pessoa sentada na cadeira, notebook aberto..."
+              rows={3}
+              className="bg-secondary/30 border-border resize-none"
+            />
+            <p className="text-[10px] text-muted-foreground">
+              Descreva a imagem de referência para contextualizar cenário e ação inicial.
+            </p>
           </div>
 
           {/* Slider */}

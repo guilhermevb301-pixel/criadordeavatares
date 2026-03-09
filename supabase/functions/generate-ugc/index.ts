@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { produto, beneficio, tom, numCenas } = await req.json();
+    const { produto, beneficio, tom, numCenas, sotaque, startFrameDescription } = await req.json();
 
     if (!produto || !beneficio || !tom || !numCenas) {
       return new Response(JSON.stringify({ error: 'Campos obrigatórios: produto, beneficio, tom, numCenas' }), {
@@ -21,32 +21,49 @@ serve(async (req) => {
       });
     }
 
+    const sotaqueText = sotaque && sotaque !== 'neutro' ? `, com sotaque ${sotaque}` : '';
+    const startFrameText = startFrameDescription ? `\n\nREFERÊNCIA DE START FRAME (use como base para o cenário e ação inicial): ${startFrameDescription}` : '';
+
     const systemPrompt = `Você é um roteirista especialista em conteúdo UGC (User Generated Content) para redes sociais.
 
 Gere exatamente ${numCenas} cenas para um vídeo UGC sobre o produto "${produto}".
 
 Regras obrigatórias:
-- Cada cena tem: scene (cenário), action (ação do criador), dialogue (fala), type (hook/development/cta)
-- O cenário (scene) deve ser o MESMO para todas as cenas (ambiente fixo, ex: "Banheiro iluminado com luz natural")
-- As ações (action) devem ser DIFERENTES e variadas entre as cenas. Use ações como: segurar produto, aplicar produto, mostrar resultado, gesticular, olhar pra câmera, apontar, etc.
-- Cada diálogo deve ter entre 120 e 160 caracteres (OBRIGATÓRIO)
-- A primeira cena deve ser type "hook" — mencionando o produto "${produto}" e o benefício "${beneficio}" logo na primeira frase para prender atenção
-- As cenas intermediárias devem ser type "development" — desenvolver experiência, resultados, sensações
+- CADA CENA deve seguir o formato JSON estruturado com setup, action e audio
+- O cenário (setup.scene) deve ser o MESMO para todas as cenas (ambiente fixo)
+- As ações (action.movement) devem ser DIFERENTES e variadas entre as cenas
+- Cada diálogo (audio.dialogue) deve ter entre 120 e 160 caracteres (OBRIGATÓRIO)
+- A primeira cena deve ser type "hook" — mencionando o produto "${produto}" e o benefício "${beneficio}" logo na primeira frase
+- As cenas intermediárias devem ser type "development"
 - A última cena deve ser type "cta" — fechar com chamada para ação natural
 - Tom de voz: ${tom}
+- A voz deve refletir o sotaque: ${sotaque || 'neutro'}
 - Linguagem natural, humana, sem clichês, própria para vídeo curto
 - Conecte as falas para ter continuidade narrativa
-- Evite linguagem robótica ou publicitária genérica
+${startFrameText}
 
 Retorne APENAS um JSON válido no formato:
 {
   "scenes": [
     {
       "numero": 1,
-      "scene": "descrição do cenário",
-      "action": "ação específica do criador",
-      "dialogue": "texto da fala entre 120-160 chars",
-      "type": "hook|development|cta"
+      "type": "hook|development|cta",
+      "setup": {
+        "scene": "descrição detalhada do cenário",
+        "camera": "enquadramento e ângulo de câmera (ex: Plano médio, câmera estável, enquadramento vertical 9:16)",
+        "style": "estilo visual do vídeo (ex: Vídeo publicitário UGC, natural, limpo, realista)",
+        "aspect_ratio": "9:16",
+        "fps": 30,
+        "duration_seconds": 8
+      },
+      "action": {
+        "subject": "Criadora",
+        "movement": "ação específica e detalhada do criador nesta cena"
+      },
+      "audio": {
+        "dialogue": "texto da fala entre 120-160 chars",
+        "voice": "descrição da voz com sotaque e tom emocional"
+      }
     }
   ]
 }`;
@@ -69,7 +86,7 @@ Retorne APENAS um JSON válido no formato:
         model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Gere ${numCenas} cenas UGC para o produto "${produto}" com benefício "${beneficio}" no tom "${tom}".` },
+          { role: 'user', content: `Gere ${numCenas} cenas UGC para o produto "${produto}" com benefício "${beneficio}" no tom "${tom}"${sotaqueText}.` },
         ],
         temperature: 0.8,
       }),
@@ -87,7 +104,8 @@ Retorne APENAS um JSON válido no formato:
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content || '';
 
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    const jsonStr = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       return new Response(JSON.stringify({ error: 'Resposta inválida da IA' }), {
         status: 500,

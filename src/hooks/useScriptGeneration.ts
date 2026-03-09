@@ -2,14 +2,37 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
+export interface FalaSetup {
+  scene: string;
+  camera: string;
+  style: string;
+  aspect_ratio: string;
+  fps: number;
+  duration_seconds: number;
+}
+
+export interface FalaAction {
+  subject: string;
+  movement: string;
+}
+
+export interface FalaAudio {
+  dialogue: string;
+  voice: string;
+}
+
 export interface Fala {
   numero: number;
-  texto: string;
   funcao: string;
-  intencao: string;
-  expressao: string;
-  gesto: string;
-  enquadramento: string;
+  setup: FalaSetup;
+  action: FalaAction;
+  audio: FalaAudio;
+  // Legacy fields for backwards compat
+  texto?: string;
+  intencao?: string;
+  expressao?: string;
+  gesto?: string;
+  enquadramento?: string;
 }
 
 export interface CloneProfile {
@@ -31,6 +54,8 @@ export interface ScriptParams {
   cta: string;
   numFalas: number;
   cloneProfile?: CloneProfile;
+  sotaque?: string;
+  startFrameDescription?: string;
 }
 
 export type TransformAction =
@@ -105,12 +130,14 @@ export function useScriptGeneration() {
   const transformFala = async (index: number, action: TransformAction, params: ScriptParams) => {
     setIsLoading(true);
     try {
+      const fala = falas[index];
+      const falaOriginal = fala?.audio?.dialogue || fala?.texto || '';
       const { data, error } = await supabase.functions.invoke('generate-script', {
         body: {
           ...params,
           action,
-          falaOriginal: falas[index]?.texto,
-          funcaoAlvo: falas[index]?.funcao,
+          falaOriginal,
+          funcaoAlvo: fala?.funcao,
           numFalas: 1,
         },
       });
@@ -135,11 +162,12 @@ export function useScriptGeneration() {
     setTransformedText(null);
     try {
       const isTextTransform = ['legenda', 'prompt-video', 'teleprompter'].includes(action);
+      const falasOriginais = falas.map(f => f.audio?.dialogue || f.texto || '');
       const { data, error } = await supabase.functions.invoke('generate-script', {
         body: {
           ...params,
           action,
-          falasOriginais: falas.map(f => f.texto),
+          falasOriginais,
         },
       });
 

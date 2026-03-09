@@ -17,13 +17,16 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { tema, objetivo, publicoAlvo, estiloFala, personalidade, plataforma, cta, numFalas, cloneProfile, action, falaOriginal, falasOriginais, funcaoAlvo } = body;
+    const { tema, objetivo, publicoAlvo, estiloFala, personalidade, plataforma, cta, numFalas, cloneProfile, action, falaOriginal, falasOriginais, funcaoAlvo, sotaque, startFrameDescription } = body;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     const nFalas = Math.min(5, Math.max(2, numFalas || 3));
     const funcoes = funcaoMap[nFalas] || funcaoMap[3];
+
+    const sotaqueText = sotaque && sotaque !== 'neutro' ? `, com sotaque ${sotaque}` : '';
+    const startFrameText = startFrameDescription ? `\nREFERÊNCIA DE START FRAME: ${startFrameDescription}` : '';
 
     // Build clone profile context
     let cloneCtx = "";
@@ -68,9 +71,30 @@ serve(async (req) => {
       else if (action === "expandir") instruction = "Expanda levemente esta fala sem ultrapassar 140 caracteres. Adicione mais detalhes ou emoção.";
 
       const sysPrompt = `Você é um roteirista brasileiro premium. ${instruction}${cloneCtx}
+A voz do personagem tem sotaque: ${sotaque || 'neutro'}
+${startFrameText}
 
-Retorne APENAS JSON válido:
-{"falas":[{"numero":1,"texto":"texto aqui","funcao":"${funcaoAlvo || "Hook"}","intencao":"intenção","expressao":"expressão","gesto":"gesto","enquadramento":"enquadramento"}]}`;
+Retorne APENAS JSON válido no formato estruturado:
+{"falas":[{
+  "numero":1,
+  "funcao":"${funcaoAlvo || "Hook"}",
+  "setup": {
+    "scene": "descrição do cenário",
+    "camera": "enquadramento e ângulo",
+    "style": "estilo visual",
+    "aspect_ratio": "9:16",
+    "fps": 30,
+    "duration_seconds": 8
+  },
+  "action": {
+    "subject": "Criador(a)",
+    "movement": "ação detalhada"
+  },
+  "audio": {
+    "dialogue": "texto da fala entre 80-140 chars",
+    "voice": "descrição da voz com sotaque${sotaqueText}"
+  }
+}]}`;
 
       const resp = await callAI(LOVABLE_API_KEY, [
         { role: "system", content: sysPrompt },
@@ -86,17 +110,17 @@ Retorne APENAS JSON válido:
       else if (action === "mais-natural") instruction = "Reescreva TODO o roteiro de forma mais natural, coloquial e humana.";
       else if (action === "mais-agressiva") instruction = "Reescreva TODO o roteiro de forma mais agressiva, urgente e persuasiva.";
 
-      const sysPrompt = buildMainSystemPrompt(nFalas, funcoes, cloneCtx, instruction);
+      const sysPrompt = buildMainSystemPrompt(nFalas, funcoes, cloneCtx, sotaque, startFrameText, instruction);
       const resp = await callAI(LOVABLE_API_KEY, [
         { role: "system", content: sysPrompt },
-        { role: "user", content: buildUserPrompt(tema, objetivo, publicoAlvo, estiloFala, personalidade, plataforma, cta, nFalas, `\nRoteiro original:\n${falasOriginais.join("\n")}`) },
+        { role: "user", content: buildUserPrompt(tema, objetivo, publicoAlvo, estiloFala, personalidade, plataforma, cta, nFalas, sotaque, `\nRoteiro original:\n${falasOriginais.join("\n")}`) },
       ]);
       return jsonResponse(resp);
     }
 
     // Default: generate new script
-    const systemPrompt = buildMainSystemPrompt(nFalas, funcoes, cloneCtx);
-    const userPrompt = buildUserPrompt(tema, objetivo, publicoAlvo, estiloFala, personalidade, plataforma, cta, nFalas);
+    const systemPrompt = buildMainSystemPrompt(nFalas, funcoes, cloneCtx, sotaque, startFrameText);
+    const userPrompt = buildUserPrompt(tema, objetivo, publicoAlvo, estiloFala, personalidade, plataforma, cta, nFalas, sotaque);
 
     const resp = await callAI(LOVABLE_API_KEY, [
       { role: "system", content: systemPrompt },
@@ -112,7 +136,8 @@ Retorne APENAS JSON válido:
   }
 });
 
-function buildMainSystemPrompt(nFalas: number, funcoes: string[], cloneCtx: string, extraInstruction?: string): string {
+function buildMainSystemPrompt(nFalas: number, funcoes: string[], cloneCtx: string, sotaque?: string, startFrameText?: string, extraInstruction?: string): string {
+  const sotaqueText = sotaque && sotaque !== 'neutro' ? sotaque : 'neutro';
   return `Você é um roteirista brasileiro de elite, especializado em vídeos curtos para clones de IA.
 Seu trabalho é criar falas que soem EXTREMAMENTE humanas, naturais, performáveis.
 
@@ -128,6 +153,8 @@ REGRAS OBRIGATÓRIAS:
 - A última fala DEVE fechar com impacto ou CTA forte
 - Varie o ritmo: frases curtas + médias para manter dinamismo
 - Use linguagem do dia a dia brasileiro, com personalidade
+- O sotaque do personagem é: ${sotaqueText}
+${startFrameText || ""}
 ${cloneCtx}
 
 Retorne APENAS um JSON válido neste formato exato, sem markdown:
@@ -135,18 +162,29 @@ Retorne APENAS um JSON válido neste formato exato, sem markdown:
   "falas": [
     {
       "numero": 1,
-      "texto": "texto da fala entre 80-140 chars",
       "funcao": "${funcoes[0]}",
-      "intencao": "objetivo emocional desta fala",
-      "expressao": "sugestão de expressão facial",
-      "gesto": "sugestão de gesto ou ação corporal",
-      "enquadramento": "sugestão de enquadramento de câmera"
+      "setup": {
+        "scene": "descrição detalhada do cenário",
+        "camera": "enquadramento e ângulo de câmera",
+        "style": "estilo visual do vídeo",
+        "aspect_ratio": "9:16",
+        "fps": 30,
+        "duration_seconds": 8
+      },
+      "action": {
+        "subject": "Criador(a)",
+        "movement": "ação específica e detalhada"
+      },
+      "audio": {
+        "dialogue": "texto da fala entre 80-140 chars",
+        "voice": "descrição da voz com sotaque ${sotaqueText} e tom emocional"
+      }
     }
   ]
 }`;
 }
 
-function buildUserPrompt(tema: string, objetivo: string, publicoAlvo: string, estiloFala: string, personalidade: string, plataforma: string, cta: string, nFalas: number, extra?: string): string {
+function buildUserPrompt(tema: string, objetivo: string, publicoAlvo: string, estiloFala: string, personalidade: string, plataforma: string, cta: string, nFalas: number, sotaque?: string, extra?: string): string {
   return `Crie um roteiro premium para clone de IA:
 - Tema: ${tema}
 - Objetivo: ${objetivo}
@@ -156,9 +194,10 @@ function buildUserPrompt(tema: string, objetivo: string, publicoAlvo: string, es
 - Plataforma: ${plataforma}
 - CTA: ${cta || "definir automaticamente"}
 - Número de falas: ${nFalas}
+- Sotaque: ${sotaque || "neutro"}
 ${extra || ""}
 
-LEMBRE: cada fala entre 80-140 caracteres. Conte com precisão.`;
+LEMBRE: cada fala entre 80-140 caracteres. Conte com precisão. Use o formato JSON estruturado com setup/action/audio.`;
 }
 
 async function callAI(apiKey: string, messages: Array<{role: string; content: string}>) {

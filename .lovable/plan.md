@@ -1,95 +1,97 @@
 
 
-## Plano: Output JSON estruturado + campo de sotaque nos geradores UGC e Roteiro
+## Adicionar Campo de Texto Livre em Cada Seção do Builder
 
-### O que muda
+### Resumo
 
-Ambos os geradores (Cenas UGC e Roteiro Clone) precisam:
-1. **Novo campo "Sotaque"** na UI de configuração
-2. **Novo campo "Start Frame" (upload de imagem)** na UI - o usuário anexa uma foto de referência e a descrição é incluída no prompt
-3. **Output no formato JSON estruturado** com `setup`, `action`, `audio` (conforme a estrutura que você enviou)
+Adicionar um campo de texto "Personalizar" (Input) em cada seção de configuracao do avatar (Roupa, Ambiente, Posicao, Angulo de Camera, Expressao, Iluminacao, Estilo Fotografico, Proporcao, e sub-blocos de Aparencia). Isso permite que o usuario digite algo extra como "blusa vermelha" ou "em cima de um predio abandonado" alem das opcoes pre-definidas.
+
+---
+
+### Como funciona
+
+- Abaixo das opcoes de cada bloco, aparece um campo de texto com placeholder contextualizado (ex: "Ex: blusa vermelha com estampa..." para Roupa, "Ex: em cima de um predio abandonado..." para Ambiente)
+- O texto digitado e incluido no prompt final junto com as opcoes selecionadas
+- Se o usuario so digitar texto sem selecionar opcoes, funciona tambem
+
+---
 
 ### Arquivos a modificar
 
-#### 1. Edge Function `supabase/functions/generate-ugc/index.ts`
-- Aceitar novos campos: `sotaque`, `startFrameDescription`
-- Mudar o prompt do sistema para pedir output no novo formato JSON:
-  ```json
-  {
-    "setup": { "scene", "camera", "style", "aspect_ratio", "fps", "duration_seconds" },
-    "action": { "subject", "movement" },
-    "audio": { "dialogue", "voice" }
-  }
-  ```
-- Incluir o sotaque na descrição da voz (`audio.voice`)
-- Incluir a descrição do start frame no `setup.scene` e `action`
-- Cada cena retorna um objeto nesse formato (array de objetos)
+#### 1. `src/lib/avatar-config.ts`
+- Adicionar novos campos ao `AvatarState` e `defaultAvatarState`:
+  - `customClothing: string`
+  - `customEnvironment: string`
+  - `customPose: string`
+  - `customCameraAngle: string`
+  - `customCameraFraming: string`
+  - `customExpression: string`
+  - `customLighting: string`
+  - `customPhotoStyle: string`
+  - `customAspectRatio: string`
+  - `customSkinTone: string`
+  - `customEyeColor: string`
+  - `customHairColor: string`
+  - `customHairType: string`
+  - `customFeatures: string`
 
-#### 2. Edge Function `supabase/functions/generate-script/index.ts`
-- Aceitar novos campos: `sotaque`, `startFrameDescription`
-- Mudar o formato de saída para o mesmo JSON estruturado (setup/action/audio)
-- Incluir sotaque na voz gerada
-- Incluir start frame description no contexto
+Todos com default `''`.
 
-#### 3. Hook `src/hooks/useUgcGeneration.ts`
-- Atualizar `UgcScene` interface para o novo formato JSON (setup/action/audio)
-- Adicionar `sotaque` e `startFrameDescription` ao `UgcParams`
+#### 2. `src/lib/prompt-engine.ts`
+- Em cada secao do prompt, apos coletar os valores das opcoes pre-definidas, concatenar o campo custom correspondente se preenchido
+- Exemplo para roupa: se `state.customClothing` tem valor, adicionar ao final da secao de roupas
 
-#### 4. Hook `src/hooks/useScriptGeneration.ts`
-- Atualizar `Fala` interface para o novo formato JSON (setup/action/audio)
-- Adicionar `sotaque` e `startFrameDescription` ao `ScriptParams`
+#### 3. `src/pages/AvatarBuilderPage.tsx`
+- Em cada bloco do Accordion (e sub-blocos de appearance e camera), adicionar um `<Input>` abaixo do `<OptionGrid>` com:
+  - Icone de lapis ou emoji
+  - Placeholder contextualizado
+  - Bind ao campo custom correspondente via `updateField`
 
-#### 5. `src/pages/UgcGeneratorPage.tsx`
-- Adicionar campo Select de **Sotaque** (ex: Paulista, Carioca, Mineiro, Gaúcho, Nordestino, Neutro)
-- Adicionar botão de **upload de imagem** para start frame com preview
-- Atualizar cards de resultado para exibir o novo formato JSON (setup/action/audio)
-- Botão "Exportar JSON" agora exporta no formato correto
-- Adicionar botão "Copiar Prompt" que copia o JSON completo da cena
+---
 
-#### 6. `src/components/script/ScriptConfigPanel.tsx`
-- Adicionar campo Select de **Sotaque**
-- Adicionar upload de **start frame** com preview
+### Detalhes tecnicos
 
-#### 7. `src/components/script/FalaCard.tsx`
-- Atualizar para exibir o novo formato (setup/action/audio) em vez do formato atual
-- Manter ações de copiar, regenerar, transformar
+**Novos campos no state** (14 campos string, todos default `''`):
 
-#### 8. `src/components/script/ScriptResultPanel.tsx`
-- Ajustar para renderizar o novo formato de dados
-
-### Sotaques disponíveis
-- Neutro (padrão)
-- Paulista
-- Carioca
-- Mineiro
-- Gaúcho
-- Nordestino
-- Baiano
-
-### Start Frame
-- Upload de imagem via chat/input na UI
-- A imagem é descrita pelo usuário em texto (campo de texto "Descreva a cena inicial / start frame")
-- Essa descrição é enviada junto ao prompt para contextualizar o cenário
-
-### Formato final de cada cena/fala (output)
-```json
-{
-  "setup": {
-    "scene": "descrição do cenário",
-    "camera": "enquadramento e ângulo",
-    "style": "estilo visual",
-    "aspect_ratio": "9:16",
-    "fps": 30,
-    "duration_seconds": 8
-  },
-  "action": {
-    "subject": "Criadora",
-    "movement": "ação detalhada"
-  },
-  "audio": {
-    "dialogue": "fala do personagem",
-    "voice": "descrição da voz com sotaque"
-  }
-}
+```text
+customClothing, customEnvironment, customPose, 
+customCameraAngle, customCameraFraming, customExpression, 
+customLighting, customPhotoStyle, customAspectRatio,
+customSkinTone, customEyeColor, customHairColor, 
+customHairType, customFeatures
 ```
+
+**Prompt engine** -- para cada secao, o campo custom e adicionado com virgula apos os valores selecionados. Exemplo para roupa:
+
+```text
+// Antes: "wearing a casual t-shirt layered with wearing a hoodie"
+// Depois: "wearing a casual t-shirt layered with wearing a hoodie, with red color and brand logo"
+```
+
+**UI** -- cada Input segue o padrao:
+
+```text
+<Input
+  value={state.customClothing}
+  onChange={(e) => updateField('customClothing', e.target.value)}
+  placeholder="✏️ Ex: blusa vermelha com estampa..."
+  className="mt-3"
+/>
+```
+
+**Placeholders contextualizados:**
+- Roupa: "Ex: blusa vermelha, terno azul marinho..."
+- Ambiente: "Ex: em cima de um predio abandonado..."
+- Posicao: "Ex: sentado em uma cadeira de escritorio..."
+- Angulo: "Ex: camera de drone vista aerea..."
+- Enquadramento: "Ex: apenas o rosto bem proximo..."
+- Expressao: "Ex: sorriso com os olhos fechados..."
+- Iluminacao: "Ex: luz roxa neon vindo da esquerda..."
+- Estilo Foto: "Ex: foto com lente olho de peixe..."
+- Proporcao: "Ex: formato panoramico ultra-wide..."
+- Tom de Pele: "Ex: pele bronzeada com sardas..."
+- Cor dos Olhos: "Ex: olhos heterocromicos verde e azul..."
+- Cor do Cabelo: "Ex: cabelo com mechas roxas..."
+- Tipo de Cabelo: "Ex: cabelo com trancas box braids..."
+- Caracteristicas: "Ex: cicatriz no queixo, sobrancelha grossa..."
 
