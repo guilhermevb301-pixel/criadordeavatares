@@ -381,7 +381,7 @@ const AvatarBuilderPage = () => {
             title="Cor do Cabelo"
             options={appearanceSubBlocks.hairColor.options}
             selected={state.hairColor ? [state.hairColor] : []}
-            onSelect={(id) => updateField('hairColor', id)}
+            onSelect={(id) => toggleSingle('hairColor', id)}
             multi={false}
             customKey="customHairColor"
             customValue={state.customHairColor}
