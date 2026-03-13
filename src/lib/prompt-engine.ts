@@ -183,12 +183,12 @@ export function generatePrompt(state: AvatarState): string {
   }
 
   // 10. Lighting
-  const light = findOption(blocks.find(b => b.id === 'lighting')?.options || [], state.lighting);
+  const light = state.lighting ? findOption(blocks.find(b => b.id === 'lighting')?.options || [], state.lighting) : '';
   const lightCustom = state.customLighting?.trim();
   const lightParts = [light ? light.replace(/lighting$/i, '').trim() : '', lightCustom].filter(Boolean);
   if (lightParts.length > 0) {
     const lightDesc = lightParts.join(', ');
-    if (isRealistic) {
+    if (isRealistic && light) {
       sections.push(`lighting is ${lightDesc}, creating dimensional contrast with soft shadow transitions and realistic color spill across the skin while preserving natural tones`);
     } else {
       sections.push(`lighting is ${lightDesc}`);
