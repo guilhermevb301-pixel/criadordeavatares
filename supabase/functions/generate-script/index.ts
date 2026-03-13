@@ -139,8 +139,10 @@ Retorne APENAS JSON válido no formato estruturado:
   }
 });
 
-function buildMainSystemPrompt(nFalas: number, funcoes: string[], cloneCtx: string, sotaque?: string, startFrameText?: string, extraInstruction?: string): string {
+function buildMainSystemPrompt(nFalas: number, funcoes: string[], cloneCtx: string, sotaque?: string, startFrameText?: string, extraInstruction?: string, genero?: string): string {
   const sotaqueText = sotaque && sotaque !== 'neutro' ? sotaque : 'neutro';
+  const generoLabel = genero === 'masculino' ? 'Criador' : 'Criadora';
+  const generoVoz = genero === 'masculino' ? 'masculina' : 'feminina';
   return `Você é um roteirista brasileiro de elite, especializado em vídeos curtos para clones de IA.
 Seu trabalho é criar falas que soem EXTREMAMENTE humanas, naturais, performáveis.
 
@@ -156,6 +158,7 @@ REGRAS OBRIGATÓRIAS:
 - A última fala DEVE fechar com impacto ou CTA forte
 - Varie o ritmo: frases curtas + médias para manter dinamismo
 - Use linguagem do dia a dia brasileiro, com personalidade
+- O personagem é ${genero === 'masculino' ? 'um homem' : 'uma mulher'}
 - O sotaque do personagem é: ${sotaqueText}
 ${startFrameText || ""}
 ${cloneCtx}
@@ -175,12 +178,12 @@ Retorne APENAS um JSON válido neste formato exato, sem markdown:
         "duration_seconds": 8
       },
       "action": {
-        "subject": "Criador(a)",
+        "subject": "${generoLabel}",
         "movement": "ação específica e detalhada"
       },
       "audio": {
         "dialogue": "texto da fala entre 80-140 chars",
-        "voice": "descrição da voz com sotaque ${sotaqueText} e tom emocional"
+        "voice": "descrição da voz ${generoVoz} com sotaque ${sotaqueText} e tom emocional"
       }
     }
   ]
