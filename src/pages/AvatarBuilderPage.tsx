@@ -392,7 +392,7 @@ const AvatarBuilderPage = () => {
             title="Cores Exóticas"
             options={personalitySubBlocks.exoticHairColor.options}
             selected={state.exoticHairColor ? [state.exoticHairColor] : []}
-            onSelect={(id) => updateField('exoticHairColor', state.exoticHairColor === id ? '' : id)}
+            onSelect={(id) => toggleSingle('exoticHairColor', id)}
             multi={false}
           />
           <SubBlockSection
