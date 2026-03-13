@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { produto, beneficio, tom, numCenas, sotaque, startFrameBase64 } = await req.json();
+    const { produto, beneficio, tom, numCenas, sotaque, genero, startFrameBase64 } = await req.json();
 
     if (!produto || !beneficio || !tom || !numCenas) {
       return new Response(JSON.stringify({ error: 'Campos obrigatórios: produto, beneficio, tom, numCenas' }), {
