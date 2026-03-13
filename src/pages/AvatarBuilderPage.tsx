@@ -161,6 +161,11 @@ const AvatarBuilderPage = () => {
   const { gender, state, updateField, toggleMultiField, setGender, setVisualStyle, randomize } = useAvatarStore();
   const [activeTab, setActiveTab] = useState<'builder' | 'edit'>('builder');
 
+  // Toggle helper: clicking a selected single-select option deselects it
+  const toggleSingle = <K extends keyof Omit<AvatarState, 'gender'>>(key: K, id: string) => {
+    updateField(key, (state[key] === id ? '' : id) as AvatarState[K]);
+  };
+
   const blocks = useMemo(() => (gender ? getBuilderBlocks(gender) : []), [gender]);
   const personalitySubBlocks = useMemo(() => getPersonalitySubBlocks(gender || 'masculino'), [gender]);
   const isThematic = isThematicStyle(state.visualStyle);
