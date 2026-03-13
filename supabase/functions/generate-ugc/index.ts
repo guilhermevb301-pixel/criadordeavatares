@@ -39,8 +39,8 @@ Regras obrigatórias:
 - Tom de voz: ${tom}
 - A voz deve refletir o sotaque: ${sotaque || 'neutro'} e ser ${generoVoz}
 - O personagem é ${genero === 'masculino' ? 'um homem' : 'uma mulher'}
+- Linguagem natural, humana, sem clichês, própria para vídeo curto
 - Conecte as falas para ter continuidade narrativa
-${startFrameBase64 ? '\nIMPORTANTE: Uma foto do start frame foi anexada. Analise a imagem com atenção e use o cenário, objetos, iluminação, posição da pessoa e todos os detalhes visuais como base para gerar o setup.scene, action e o contexto de TODAS as cenas.' : ''}
 
 Retorne APENAS um JSON válido no formato:
 {
