@@ -4,7 +4,7 @@ import { generatePrompt } from '@/lib/prompt-engine';
 import {
   getBuilderBlocks,
   appearanceSubBlocks,
-  personalitySubBlocks,
+  getPersonalitySubBlocks,
   cameraSubBlocks,
   visualStyles,
   artStyles,
