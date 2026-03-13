@@ -177,7 +177,7 @@ export function generatePrompt(state: AvatarState): string {
     }
   } else {
     const envBlock = blocks.find(b => b.id === 'environment');
-    const env = findOption(envBlock?.options || [], state.environment || 'modern-living');
+    const env = state.environment ? findOption(envBlock?.options || [], state.environment) : '';
     const envParts = [env ? `environment is ${env.replace(/^in /i, '').replace(/^at /i, '').replace(/^on /i, '')}` : '', state.customEnvironment?.trim()].filter(Boolean);
     if (envParts.length > 0) sections.push(envParts.join(', '));
   }
