@@ -367,15 +367,18 @@ export const appearanceSubBlocks = {
   features: { title: 'Características', options: features, type: 'multi' as const },
 };
 
-export const personalitySubBlocks = {
+export const getPersonalitySubBlocks = (gender: Gender) => ({
   faceShape: { title: 'Formato do Rosto', options: faceShapes, type: 'single' as const },
-  hairCut: { title: 'Corte de Cabelo', options: hairCuts, type: 'single' as const },
+  hairCut: { title: 'Corte de Cabelo', options: gender === 'masculino' ? hairCutsMale : hairCutsFemale, type: 'single' as const },
   exoticHairColor: { title: 'Cores Exóticas', options: exoticHairColors, type: 'single' as const },
   beardStyle: { title: 'Barba / Pelos Faciais', options: beardStyles, type: 'single' as const },
   glassesStyle: { title: 'Óculos', options: glassesStyles, type: 'single' as const },
   piercingsTattoos: { title: 'Piercings / Tatuagens', options: piercingsTattoos, type: 'multi' as const },
   makeupStyle: { title: 'Maquiagem / Pintura', options: makeupStyles, type: 'single' as const },
-};
+});
+
+// Keep backwards compat
+export const personalitySubBlocks = getPersonalitySubBlocks('masculino');
 
 export const cameraSubBlocks = {
   angle: { title: 'Ângulo', options: cameraAngles, type: 'single' as const },
