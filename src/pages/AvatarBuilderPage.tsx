@@ -708,7 +708,7 @@ const AvatarBuilderPage = () => {
                                 if (block.id === 'clothing') {
                                   toggleMultiField('clothing', id);
                                 } else {
-                                  updateField(block.id as keyof Omit<AvatarState, 'gender'>, id as any);
+                                  toggleSingle(block.id as keyof Omit<AvatarState, 'gender'>, id);
                                 }
                               }}
                               multi={block.id === 'clothing'}
