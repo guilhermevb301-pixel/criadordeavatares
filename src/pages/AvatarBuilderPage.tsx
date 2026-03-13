@@ -667,7 +667,7 @@ const AvatarBuilderPage = () => {
                                 title="Ambiente Temático"
                                 options={thematicEnvironments}
                                 selected={state.thematicEnvironment ? [state.thematicEnvironment] : []}
-                                onSelect={(id) => updateField('thematicEnvironment', id)}
+                                onSelect={(id) => toggleSingle('thematicEnvironment', id)}
                                 multi={false}
                               />
                               {state.thematicEnvironment === 'custom' && (
