@@ -63,6 +63,7 @@ function getFinishingModifiers(styleId: string): string {
 
 export function generatePrompt(state: AvatarState): string {
   const blocks = getBuilderBlocks(state.gender);
+  const personalitySubBlocks = getPersonalitySubBlocks(state.gender);
   const sections: string[] = [];
   const style = state.visualStyle || 'realistic';
   const isRealistic = style === 'realistic';
