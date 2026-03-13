@@ -437,7 +437,7 @@ const AvatarBuilderPage = () => {
             title="Óculos"
             options={personalitySubBlocks.glassesStyle.options}
             selected={state.glassesStyle ? [state.glassesStyle] : []}
-            onSelect={(id) => updateField('glassesStyle', id)}
+            onSelect={(id) => toggleSingle('glassesStyle', id)}
             multi={false}
           />
           <SubBlockSection
