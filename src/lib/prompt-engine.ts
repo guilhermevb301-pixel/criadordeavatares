@@ -217,7 +217,7 @@ export function generatePrompt(state: AvatarState): string {
 
   // 13. Aspect ratio
   {
-    const ar = findOption(blocks.find(b => b.id === 'aspectRatio')?.options || [], state.aspectRatio);
+    const ar = state.aspectRatio ? findOption(blocks.find(b => b.id === 'aspectRatio')?.options || [], state.aspectRatio) : '';
     const arParts = [ar, state.customAspectRatio?.trim()].filter(Boolean);
     if (arParts.length > 0) sections.push(arParts.join(', '));
   }
