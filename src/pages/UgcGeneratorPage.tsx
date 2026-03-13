@@ -120,6 +120,16 @@ const UgcGeneratorPage = () => {
             />
           </div>
           <div className="space-y-2">
+            <Label>👤 Gênero do Avatar</Label>
+            <Select value={form.genero} onValueChange={v => updateField('genero', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="feminino">👩 Feminino</SelectItem>
+                <SelectItem value="masculino">👨 Masculino</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
             <Label>Tom de Voz</Label>
             <Select value={form.tom} onValueChange={v => updateField('tom', v)}>
               <SelectTrigger><SelectValue /></SelectTrigger>

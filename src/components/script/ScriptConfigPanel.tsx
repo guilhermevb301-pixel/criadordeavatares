@@ -143,6 +143,17 @@ const ScriptConfigPanel = ({ isLoading, onGenerate }: ScriptConfigPanelProps) =>
             <Input value={personalidade} onChange={e => setPersonalidade(e.target.value)} placeholder="Ex: Especialista confiante e acessível" className="bg-secondary/30 border-border" />
           </div>
 
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">👤 Gênero do Avatar *</Label>
+            <Select value={genero} onValueChange={v => setGenero(v as 'masculino' | 'feminino')}>
+              <SelectTrigger className="bg-secondary/30 border-border"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="feminino">👩 Feminino</SelectItem>
+                <SelectItem value="masculino">👨 Masculino</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">🗣️ Estilo *</Label>
