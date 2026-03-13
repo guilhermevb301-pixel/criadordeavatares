@@ -649,7 +649,7 @@ const AvatarBuilderPage = () => {
                                   options={sub.options}
                                   selected={[state[key === 'angle' ? 'cameraAngle' : 'cameraFraming'] as string]}
                                   onSelect={(id) =>
-                                    updateField(key === 'angle' ? 'cameraAngle' : 'cameraFraming', id as any)
+                                    toggleSingle(key === 'angle' ? 'cameraAngle' : 'cameraFraming', id)
                                   }
                                   multi={false}
                                   customKey={customKey}
