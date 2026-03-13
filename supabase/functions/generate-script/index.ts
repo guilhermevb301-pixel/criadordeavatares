@@ -110,7 +110,7 @@ Retorne APENAS JSON válido no formato estruturado:
       else if (action === "mais-natural") instruction = "Reescreva TODO o roteiro de forma mais natural, coloquial e humana.";
       else if (action === "mais-agressiva") instruction = "Reescreva TODO o roteiro de forma mais agressiva, urgente e persuasiva.";
 
-      const sysPrompt = buildMainSystemPrompt(nFalas, funcoes, cloneCtx, sotaque, startFrameText, instruction);
+      const sysPrompt = buildMainSystemPrompt(nFalas, funcoes, cloneCtx, sotaque, startFrameText, instruction, genero);
       const resp = await callAI(LOVABLE_API_KEY, [
         { role: "system", content: sysPrompt },
         { role: "user", content: buildUserPrompt(tema, objetivo, publicoAlvo, estiloFala, personalidade, plataforma, cta, nFalas, sotaque, `\nRoteiro original:\n${falasOriginais.join("\n")}`) },
