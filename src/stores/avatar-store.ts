@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { type AvatarState, type Gender, type VisualStyle, defaultAvatarState, isThematicStyle, personalitySubBlocks, appearanceSubBlocks, artStyles } from '@/lib/avatar-config';
+import { type AvatarState, type Gender, type VisualStyle, defaultAvatarState, isThematicStyle, getPersonalitySubBlocks, appearanceSubBlocks, artStyles } from '@/lib/avatar-config';
 
 interface AvatarStore {
   gender: Gender | null;
