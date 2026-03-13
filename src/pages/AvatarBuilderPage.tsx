@@ -4,7 +4,7 @@ import { generatePrompt } from '@/lib/prompt-engine';
 import {
   getBuilderBlocks,
   appearanceSubBlocks,
-  personalitySubBlocks,
+  getPersonalitySubBlocks,
   cameraSubBlocks,
   visualStyles,
   artStyles,
@@ -161,7 +161,13 @@ const AvatarBuilderPage = () => {
   const { gender, state, updateField, toggleMultiField, setGender, setVisualStyle, randomize } = useAvatarStore();
   const [activeTab, setActiveTab] = useState<'builder' | 'edit'>('builder');
 
+  // Toggle helper: clicking a selected single-select option deselects it
+  const toggleSingle = <K extends keyof Omit<AvatarState, 'gender'>>(key: K, id: string) => {
+    updateField(key, (state[key] === id ? '' : id) as AvatarState[K]);
+  };
+
   const blocks = useMemo(() => (gender ? getBuilderBlocks(gender) : []), [gender]);
+  const personalitySubBlocks = useMemo(() => getPersonalitySubBlocks(gender || 'masculino'), [gender]);
   const isThematic = isThematicStyle(state.visualStyle);
 
   const fullState: AvatarState | null = useMemo(
@@ -335,7 +341,7 @@ const AvatarBuilderPage = () => {
             title="Etnia / Tom de Pele"
             options={appearanceSubBlocks.skinTone.options}
             selected={state.skinTone ? [state.skinTone] : []}
-            onSelect={(id) => updateField('skinTone', id)}
+            onSelect={(id) => toggleSingle('skinTone', id)}
             multi={false}
             customKey="customSkinTone"
             customValue={state.customSkinTone}
@@ -346,7 +352,7 @@ const AvatarBuilderPage = () => {
             title="Cor dos Olhos"
             options={appearanceSubBlocks.eyeColor.options}
             selected={state.eyeColor ? [state.eyeColor] : []}
-            onSelect={(id) => updateField('eyeColor', id)}
+            onSelect={(id) => toggleSingle('eyeColor', id)}
             multi={false}
             customKey="customEyeColor"
             customValue={state.customEyeColor}
@@ -357,7 +363,7 @@ const AvatarBuilderPage = () => {
             title="Formato do Rosto"
             options={personalitySubBlocks.faceShape.options}
             selected={state.faceShape ? [state.faceShape] : []}
-            onSelect={(id) => updateField('faceShape', id)}
+            onSelect={(id) => toggleSingle('faceShape', id)}
             multi={false}
           />
         </div>
@@ -375,7 +381,7 @@ const AvatarBuilderPage = () => {
             title="Cor do Cabelo"
             options={appearanceSubBlocks.hairColor.options}
             selected={state.hairColor ? [state.hairColor] : []}
-            onSelect={(id) => updateField('hairColor', id)}
+            onSelect={(id) => toggleSingle('hairColor', id)}
             multi={false}
             customKey="customHairColor"
             customValue={state.customHairColor}
@@ -386,34 +392,36 @@ const AvatarBuilderPage = () => {
             title="Cores Exóticas"
             options={personalitySubBlocks.exoticHairColor.options}
             selected={state.exoticHairColor ? [state.exoticHairColor] : []}
-            onSelect={(id) => updateField('exoticHairColor', state.exoticHairColor === id ? '' : id)}
+            onSelect={(id) => toggleSingle('exoticHairColor', id)}
             multi={false}
           />
           <SubBlockSection
             title="Corte de Cabelo"
             options={personalitySubBlocks.hairCut.options}
             selected={state.hairCut ? [state.hairCut] : []}
-            onSelect={(id) => updateField('hairCut', id)}
+            onSelect={(id) => toggleSingle('hairCut', id)}
             multi={false}
           />
           <SubBlockSection
             title="Tipo de Cabelo"
             options={appearanceSubBlocks.hairType.options}
             selected={state.hairType ? [state.hairType] : []}
-            onSelect={(id) => updateField('hairType', id)}
+            onSelect={(id) => toggleSingle('hairType', id)}
             multi={false}
             customKey="customHairType"
             customValue={state.customHairType}
             customPlaceholder="✏️ Ex: cabelo com tranças box braids..."
             onCustomChange={(v) => updateField('customHairType', v)}
           />
-          <SubBlockSection
-            title="Barba / Pelos Faciais"
-            options={personalitySubBlocks.beardStyle.options}
-            selected={state.beardStyle ? [state.beardStyle] : []}
-            onSelect={(id) => updateField('beardStyle', id)}
-            multi={false}
-          />
+          {gender === 'masculino' && (
+            <SubBlockSection
+              title="Barba / Pelos Faciais"
+              options={personalitySubBlocks.beardStyle.options}
+              selected={state.beardStyle ? [state.beardStyle] : []}
+              onSelect={(id) => toggleSingle('beardStyle', id)}
+              multi={false}
+            />
+          )}
         </div>
       ),
     },
@@ -429,7 +437,7 @@ const AvatarBuilderPage = () => {
             title="Óculos"
             options={personalitySubBlocks.glassesStyle.options}
             selected={state.glassesStyle ? [state.glassesStyle] : []}
-            onSelect={(id) => updateField('glassesStyle', id)}
+            onSelect={(id) => toggleSingle('glassesStyle', id)}
             multi={false}
           />
           <SubBlockSection
@@ -443,7 +451,7 @@ const AvatarBuilderPage = () => {
             title="Maquiagem / Pintura de Guerra"
             options={personalitySubBlocks.makeupStyle.options}
             selected={state.makeupStyle ? [state.makeupStyle] : []}
-            onSelect={(id) => updateField('makeupStyle', id)}
+            onSelect={(id) => toggleSingle('makeupStyle', id)}
             multi={false}
           />
           <SubBlockSection
@@ -641,7 +649,7 @@ const AvatarBuilderPage = () => {
                                   options={sub.options}
                                   selected={[state[key === 'angle' ? 'cameraAngle' : 'cameraFraming'] as string]}
                                   onSelect={(id) =>
-                                    updateField(key === 'angle' ? 'cameraAngle' : 'cameraFraming', id as any)
+                                    toggleSingle(key === 'angle' ? 'cameraAngle' : 'cameraFraming', id)
                                   }
                                   multi={false}
                                   customKey={customKey}
@@ -659,7 +667,7 @@ const AvatarBuilderPage = () => {
                                 title="Ambiente Temático"
                                 options={thematicEnvironments}
                                 selected={state.thematicEnvironment ? [state.thematicEnvironment] : []}
-                                onSelect={(id) => updateField('thematicEnvironment', id)}
+                                onSelect={(id) => toggleSingle('thematicEnvironment', id)}
                                 multi={false}
                               />
                               {state.thematicEnvironment === 'custom' && (
@@ -676,7 +684,7 @@ const AvatarBuilderPage = () => {
                               <OptionGrid
                                 options={block.options || []}
                                 selected={state.environment ? [state.environment] : []}
-                                onSelect={(id) => updateField('environment', id)}
+                                onSelect={(id) => toggleSingle('environment', id)}
                                 multi={false}
                               />
                               <Input
@@ -700,7 +708,7 @@ const AvatarBuilderPage = () => {
                                 if (block.id === 'clothing') {
                                   toggleMultiField('clothing', id);
                                 } else {
-                                  updateField(block.id as keyof Omit<AvatarState, 'gender'>, id as any);
+                                  toggleSingle(block.id as keyof Omit<AvatarState, 'gender'>, id);
                                 }
                               }}
                               multi={block.id === 'clothing'}

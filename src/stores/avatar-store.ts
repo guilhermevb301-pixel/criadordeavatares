@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { type AvatarState, type Gender, type VisualStyle, defaultAvatarState, isThematicStyle, personalitySubBlocks, appearanceSubBlocks, artStyles } from '@/lib/avatar-config';
+import { type AvatarState, type Gender, type VisualStyle, defaultAvatarState, isThematicStyle, getPersonalitySubBlocks, appearanceSubBlocks, artStyles } from '@/lib/avatar-config';
 
 interface AvatarStore {
   gender: Gender | null;
@@ -55,6 +55,8 @@ export const useAvatarStore = create<AvatarStore>()(
         }),
       randomize: () =>
         set((s) => {
+          const gender = (s as any).gender || 'masculino';
+          const personalitySubBlocks = getPersonalitySubBlocks(gender);
           const skinOpts = appearanceSubBlocks.skinTone.options;
           const eyeOpts = appearanceSubBlocks.eyeColor.options;
           const hairColorOpts = appearanceSubBlocks.hairColor.options;
@@ -80,7 +82,7 @@ export const useAvatarStore = create<AvatarStore>()(
               faceShape: pickRandom(faceOpts).id,
               hairCut: pickRandom(hairCutOpts).id,
               exoticHairColor: Math.random() > 0.7 ? pickRandom(exoticOpts).id : '',
-              beardStyle: pickRandom(beardOpts).id,
+              beardStyle: gender === 'masculino' ? pickRandom(beardOpts).id : '',
               glassesStyle: Math.random() > 0.6 ? pickRandom(glassOpts).id : 'none',
               piercingsTattoos: Math.random() > 0.5 ? pickRandomMulti(piercOpts, 2).map(o => o.id) : [],
               makeupStyle: Math.random() > 0.5 ? pickRandom(makeupOpts).id : 'none',

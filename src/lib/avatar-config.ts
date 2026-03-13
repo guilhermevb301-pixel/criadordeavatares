@@ -68,19 +68,29 @@ const exoticHairColors: OptionItem[] = [
   { id: 'galaxy-ombre', label: 'Galaxy Ombré', promptValue: 'galaxy ombré hair transitioning from deep purple to blue to pink', icon: '🌌' },
 ];
 
-const hairCuts: OptionItem[] = [
+const hairCutsMale: OptionItem[] = [
   { id: 'buzzcut', label: 'Buzzcut', promptValue: 'buzzcut hairstyle', icon: '💈' },
   { id: 'fade', label: 'Fade', promptValue: 'clean fade haircut', icon: '💈' },
+  { id: 'undercut', label: 'Undercut', promptValue: 'stylish undercut hairstyle', icon: '💈' },
+  { id: 'man-bun', label: 'Man Bun', promptValue: 'man bun hairstyle', icon: '🎀' },
+  { id: 'slicked-back', label: 'Slicked Back', promptValue: 'slicked back hair with gel', icon: '💈' },
+  { id: 'mohawk', label: 'Moicano', promptValue: 'bold mohawk hairstyle', icon: '🦔' },
+  { id: 'afro', label: 'Afro', promptValue: 'voluminous natural afro hairstyle', icon: '🌀' },
+  { id: 'braids', label: 'Tranças', promptValue: 'intricate braided hairstyle', icon: '🪢' },
+  { id: 'long-wavy', label: 'Long Wavy', promptValue: 'long wavy flowing hair', icon: '🌊' },
+];
+
+const hairCutsFemale: OptionItem[] = [
   { id: 'long-wavy', label: 'Long Wavy', promptValue: 'long wavy flowing hair', icon: '🌊' },
   { id: 'bob', label: 'Bob Cut', promptValue: 'chin-length bob cut', icon: '✂️' },
   { id: 'pixie', label: 'Pixie Cut', promptValue: 'short pixie cut', icon: '✂️' },
-  { id: 'undercut', label: 'Undercut', promptValue: 'stylish undercut hairstyle', icon: '💈' },
-  { id: 'man-bun', label: 'Man Bun', promptValue: 'man bun hairstyle', icon: '🎀' },
+  { id: 'curtain-bangs', label: 'Curtain Bangs', promptValue: 'curtain bangs framing the face', icon: '🪟' },
   { id: 'braids', label: 'Tranças', promptValue: 'intricate braided hairstyle', icon: '🪢' },
   { id: 'afro', label: 'Afro', promptValue: 'voluminous natural afro hairstyle', icon: '🌀' },
-  { id: 'mohawk', label: 'Moicano', promptValue: 'bold mohawk hairstyle', icon: '🦔' },
-  { id: 'slicked-back', label: 'Slicked Back', promptValue: 'slicked back hair with gel', icon: '💈' },
-  { id: 'curtain-bangs', label: 'Curtain Bangs', promptValue: 'curtain bangs framing the face', icon: '🪟' },
+  { id: 'lob', label: 'Lob (Long Bob)', promptValue: 'shoulder-length long bob hairstyle', icon: '✂️' },
+  { id: 'ponytail', label: 'Rabo de Cavalo', promptValue: 'sleek ponytail hairstyle', icon: '🎀' },
+  { id: 'updo', label: 'Coque', promptValue: 'elegant updo bun hairstyle', icon: '💇‍♀️' },
+  { id: 'bangs', label: 'Franja', promptValue: 'straight bangs fringe hairstyle', icon: '💇‍♀️' },
 ];
 
 const hairTypes: OptionItem[] = [
@@ -357,15 +367,18 @@ export const appearanceSubBlocks = {
   features: { title: 'Características', options: features, type: 'multi' as const },
 };
 
-export const personalitySubBlocks = {
+export const getPersonalitySubBlocks = (gender: Gender) => ({
   faceShape: { title: 'Formato do Rosto', options: faceShapes, type: 'single' as const },
-  hairCut: { title: 'Corte de Cabelo', options: hairCuts, type: 'single' as const },
+  hairCut: { title: 'Corte de Cabelo', options: gender === 'masculino' ? hairCutsMale : hairCutsFemale, type: 'single' as const },
   exoticHairColor: { title: 'Cores Exóticas', options: exoticHairColors, type: 'single' as const },
   beardStyle: { title: 'Barba / Pelos Faciais', options: beardStyles, type: 'single' as const },
   glassesStyle: { title: 'Óculos', options: glassesStyles, type: 'single' as const },
   piercingsTattoos: { title: 'Piercings / Tatuagens', options: piercingsTattoos, type: 'multi' as const },
   makeupStyle: { title: 'Maquiagem / Pintura', options: makeupStyles, type: 'single' as const },
-};
+});
+
+// Keep backwards compat
+export const personalitySubBlocks = getPersonalitySubBlocks('masculino');
 
 export const cameraSubBlocks = {
   angle: { title: 'Ângulo', options: cameraAngles, type: 'single' as const },
