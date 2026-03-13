@@ -406,7 +406,7 @@ const AvatarBuilderPage = () => {
             title="Tipo de Cabelo"
             options={appearanceSubBlocks.hairType.options}
             selected={state.hairType ? [state.hairType] : []}
-            onSelect={(id) => updateField('hairType', id)}
+            onSelect={(id) => toggleSingle('hairType', id)}
             multi={false}
             customKey="customHairType"
             customValue={state.customHairType}
