@@ -451,7 +451,7 @@ const AvatarBuilderPage = () => {
             title="Maquiagem / Pintura de Guerra"
             options={personalitySubBlocks.makeupStyle.options}
             selected={state.makeupStyle ? [state.makeupStyle] : []}
-            onSelect={(id) => updateField('makeupStyle', id)}
+            onSelect={(id) => toggleSingle('makeupStyle', id)}
             multi={false}
           />
           <SubBlockSection
