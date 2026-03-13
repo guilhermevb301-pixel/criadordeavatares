@@ -62,7 +62,7 @@ Retorne APENAS um JSON válido no formato:
       },
       "audio": {
         "dialogue": "texto da fala entre 120-160 chars",
-        "voice": "descrição da voz com sotaque e tom emocional"
+        "voice": "descrição da voz ${generoVoz} com sotaque e tom emocional"
       }
     }
   ]
