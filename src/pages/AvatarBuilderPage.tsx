@@ -162,6 +162,7 @@ const AvatarBuilderPage = () => {
   const [activeTab, setActiveTab] = useState<'builder' | 'edit'>('builder');
 
   const blocks = useMemo(() => (gender ? getBuilderBlocks(gender) : []), [gender]);
+  const personalitySubBlocks = useMemo(() => getPersonalitySubBlocks(gender || 'masculino'), [gender]);
   const isThematic = isThematicStyle(state.visualStyle);
 
   const fullState: AvatarState | null = useMemo(
