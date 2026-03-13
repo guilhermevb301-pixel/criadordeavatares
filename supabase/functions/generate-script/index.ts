@@ -119,7 +119,7 @@ Retorne APENAS JSON válido no formato estruturado:
     }
 
     // Default: generate new script
-    const systemPrompt = buildMainSystemPrompt(nFalas, funcoes, cloneCtx, sotaque, startFrameText);
+    const systemPrompt = buildMainSystemPrompt(nFalas, funcoes, cloneCtx, sotaque, startFrameText, undefined, genero);
     const userPrompt = buildUserPrompt(tema, objetivo, publicoAlvo, estiloFala, personalidade, plataforma, cta, nFalas, sotaque);
 
     // Build multimodal user message if image provided
