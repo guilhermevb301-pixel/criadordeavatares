@@ -352,7 +352,7 @@ const AvatarBuilderPage = () => {
             title="Cor dos Olhos"
             options={appearanceSubBlocks.eyeColor.options}
             selected={state.eyeColor ? [state.eyeColor] : []}
-            onSelect={(id) => updateField('eyeColor', id)}
+            onSelect={(id) => toggleSingle('eyeColor', id)}
             multi={false}
             customKey="customEyeColor"
             customValue={state.customEyeColor}
