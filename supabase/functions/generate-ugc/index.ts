@@ -42,7 +42,7 @@ Regras obrigatórias:
 - Linguagem natural, humana, sem clichês, própria para vídeo curto
 - Conecte as falas para ter continuidade narrativa
 
-Retorne APENAS um JSON válido no formato:
+${startFrameBase64 ? '\nIMPORTANTE: Uma foto do start frame foi anexada. Analise a imagem com atenção e use o cenário, objetos, iluminação, posição da pessoa e todos os detalhes visuais como base para gerar o setup.scene, action e o contexto de TODAS as cenas.' : ''}
 {
   "scenes": [
     {
