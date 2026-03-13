@@ -363,7 +363,7 @@ const AvatarBuilderPage = () => {
             title="Formato do Rosto"
             options={personalitySubBlocks.faceShape.options}
             selected={state.faceShape ? [state.faceShape] : []}
-            onSelect={(id) => updateField('faceShape', id)}
+            onSelect={(id) => toggleSingle('faceShape', id)}
             multi={false}
           />
         </div>
