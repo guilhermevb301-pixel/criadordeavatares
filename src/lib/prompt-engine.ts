@@ -6,7 +6,7 @@ import {
   type Gender,
   type OptionItem,
   appearanceSubBlocks,
-  personalitySubBlocks,
+  getPersonalitySubBlocks,
   cameraSubBlocks,
   getBuilderBlocks,
   visualStyles,
