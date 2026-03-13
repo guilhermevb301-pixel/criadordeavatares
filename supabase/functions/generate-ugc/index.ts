@@ -37,8 +37,8 @@ Regras obrigatórias:
 - As cenas intermediárias devem ser type "development"
 - A última cena deve ser type "cta" — fechar com chamada para ação natural
 - Tom de voz: ${tom}
-- A voz deve refletir o sotaque: ${sotaque || 'neutro'}
-- Linguagem natural, humana, sem clichês, própria para vídeo curto
+- A voz deve refletir o sotaque: ${sotaque || 'neutro'} e ser ${generoVoz}
+- O personagem é ${genero === 'masculino' ? 'um homem' : 'uma mulher'}
 - Conecte as falas para ter continuidade narrativa
 ${startFrameBase64 ? '\nIMPORTANTE: Uma foto do start frame foi anexada. Analise a imagem com atenção e use o cenário, objetos, iluminação, posição da pessoa e todos os detalhes visuais como base para gerar o setup.scene, action e o contexto de TODAS as cenas.' : ''}
 
