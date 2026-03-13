@@ -106,9 +106,11 @@ export function generatePrompt(state: AvatarState): string {
     sections.push(`the subject has ${appearanceParts.join(', ')}`);
   }
 
-  // 3b. Beard
-  const beard = findOption(personalitySubBlocks.beardStyle.options, state.beardStyle);
-  if (beard) sections.push(beard);
+  // 3b. Beard (only for male)
+  if (state.gender === 'masculino') {
+    const beard = findOption(personalitySubBlocks.beardStyle.options, state.beardStyle);
+    if (beard) sections.push(beard);
+  }
 
   // 4. Features
   const featureDescs = (state.features || [])
