@@ -22,7 +22,8 @@ serve(async (req) => {
     }
 
     const sotaqueText = sotaque && sotaque !== 'neutro' ? `, com sotaque ${sotaque}` : '';
-
+    const generoLabel = genero === 'masculino' ? 'Criador' : 'Criadora';
+    const generoVoz = genero === 'masculino' ? 'masculina' : 'feminina';
     const systemPrompt = `Você é um roteirista especialista em conteúdo UGC (User Generated Content) para redes sociais.
 
 Gere exatamente ${numCenas} cenas para um vídeo UGC sobre o produto "${produto}".
