@@ -413,13 +413,15 @@ const AvatarBuilderPage = () => {
             customPlaceholder="✏️ Ex: cabelo com tranças box braids..."
             onCustomChange={(v) => updateField('customHairType', v)}
           />
-          <SubBlockSection
-            title="Barba / Pelos Faciais"
-            options={personalitySubBlocks.beardStyle.options}
-            selected={state.beardStyle ? [state.beardStyle] : []}
-            onSelect={(id) => updateField('beardStyle', id)}
-            multi={false}
-          />
+          {gender === 'masculino' && (
+            <SubBlockSection
+              title="Barba / Pelos Faciais"
+              options={personalitySubBlocks.beardStyle.options}
+              selected={state.beardStyle ? [state.beardStyle] : []}
+              onSelect={(id) => toggleSingle('beardStyle', id)}
+              multi={false}
+            />
+          )}
         </div>
       ),
     },
