@@ -151,7 +151,10 @@ export function generatePrompt(state: AvatarState): string {
   const expr = findOption(blocks.find(b => b.id === 'expression')?.options || [], state.expression);
   const exprCustom = state.customExpression?.trim();
   const exprParts = [expr ? `expression is ${expr.replace(/^with a /i, '').replace(/expression$/i, '').trim()}` : '', exprCustom].filter(Boolean);
-  if (exprParts.length > 0) sections.push(`${exprParts.join(', ')}, maintaining direct eye contact with the camera`);
+  if (exprParts.length > 0) {
+    const eyeContact = expr ? ', maintaining direct eye contact with the camera' : '';
+    sections.push(`${exprParts.join(', ')}${eyeContact}`);
+  }
 
   // 7. Pose
   const pose = findOption(blocks.find(b => b.id === 'pose')?.options || [], state.pose);
@@ -174,18 +177,18 @@ export function generatePrompt(state: AvatarState): string {
     }
   } else {
     const envBlock = blocks.find(b => b.id === 'environment');
-    const env = findOption(envBlock?.options || [], state.environment || 'modern-living');
+    const env = state.environment ? findOption(envBlock?.options || [], state.environment) : '';
     const envParts = [env ? `environment is ${env.replace(/^in /i, '').replace(/^at /i, '').replace(/^on /i, '')}` : '', state.customEnvironment?.trim()].filter(Boolean);
     if (envParts.length > 0) sections.push(envParts.join(', '));
   }
 
   // 10. Lighting
-  const light = findOption(blocks.find(b => b.id === 'lighting')?.options || [], state.lighting);
+  const light = state.lighting ? findOption(blocks.find(b => b.id === 'lighting')?.options || [], state.lighting) : '';
   const lightCustom = state.customLighting?.trim();
   const lightParts = [light ? light.replace(/lighting$/i, '').trim() : '', lightCustom].filter(Boolean);
   if (lightParts.length > 0) {
     const lightDesc = lightParts.join(', ');
-    if (isRealistic) {
+    if (isRealistic && light) {
       sections.push(`lighting is ${lightDesc}, creating dimensional contrast with soft shadow transitions and realistic color spill across the skin while preserving natural tones`);
     } else {
       sections.push(`lighting is ${lightDesc}`);
@@ -199,12 +202,12 @@ export function generatePrompt(state: AvatarState): string {
 
   // 12. Photo style / camera look (only for realistic/watercolor)
   if (isRealistic || style === 'watercolor') {
-    const photoStyle = findOption(blocks.find(b => b.id === 'photoStyle')?.options || [], state.photoStyle);
+    const photoStyle = state.photoStyle ? findOption(blocks.find(b => b.id === 'photoStyle')?.options || [], state.photoStyle) : '';
     const photoCustom = state.customPhotoStyle?.trim();
     const photoParts = [photoStyle, photoCustom].filter(Boolean);
     if (photoParts.length > 0) {
       const photoDesc = photoParts.join(', ');
-      if (isRealistic) {
+      if (isRealistic && photoStyle) {
         sections.push(`camera look is premium ${photoDesc}, razor-sharp focus on the eyes, natural color balance, no HDR, no over-sharpening, no stylization`);
       } else {
         sections.push(`style reference: ${photoDesc}`);
@@ -214,7 +217,7 @@ export function generatePrompt(state: AvatarState): string {
 
   // 13. Aspect ratio
   {
-    const ar = findOption(blocks.find(b => b.id === 'aspectRatio')?.options || [], state.aspectRatio);
+    const ar = state.aspectRatio ? findOption(blocks.find(b => b.id === 'aspectRatio')?.options || [], state.aspectRatio) : '';
     const arParts = [ar, state.customAspectRatio?.trim()].filter(Boolean);
     if (arParts.length > 0) sections.push(arParts.join(', '));
   }

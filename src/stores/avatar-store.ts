@@ -94,9 +94,24 @@ export const useAvatarStore = create<AvatarStore>()(
     }),
     {
       name: 'avatar-builder-state',
+      version: 2,
       merge: (persistedState, currentState) => {
         const persisted = (persistedState as Partial<AvatarStore>) || {};
         const persistedInnerState = (persisted.state as Partial<AvatarState>) || {};
+
+        // Sanitize: clear values that may be stale from old sessions
+        const sanitizedState: Partial<AvatarState> = { ...persistedInnerState };
+        
+        // Ensure array fields are valid arrays
+        sanitizedState.features = Array.isArray(persistedInnerState.features)
+          ? persistedInnerState.features
+          : defaultAvatarState.features;
+        sanitizedState.clothing = Array.isArray(persistedInnerState.clothing)
+          ? persistedInnerState.clothing
+          : defaultAvatarState.clothing;
+        sanitizedState.piercingsTattoos = Array.isArray(persistedInnerState.piercingsTattoos)
+          ? persistedInnerState.piercingsTattoos
+          : defaultAvatarState.piercingsTattoos;
 
         return {
           ...currentState,
@@ -104,18 +119,16 @@ export const useAvatarStore = create<AvatarStore>()(
           state: {
             ...defaultAvatarState,
             ...currentState.state,
-            ...persistedInnerState,
-            features: Array.isArray(persistedInnerState.features)
-              ? persistedInnerState.features
-              : defaultAvatarState.features,
-            clothing: Array.isArray(persistedInnerState.clothing)
-              ? persistedInnerState.clothing
-              : defaultAvatarState.clothing,
-            piercingsTattoos: Array.isArray(persistedInnerState.piercingsTattoos)
-              ? persistedInnerState.piercingsTattoos
-              : defaultAvatarState.piercingsTattoos,
+            ...sanitizedState,
           },
         } as AvatarStore;
+      },
+      migrate: (persistedState: any, version: number) => {
+        if (version < 2) {
+          // Force reset on version bump to clear stale defaults
+          return { gender: null, state: { ...defaultAvatarState } };
+        }
+        return persistedState;
       },
     }
   )
