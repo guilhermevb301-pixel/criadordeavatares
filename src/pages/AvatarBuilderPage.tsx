@@ -399,7 +399,7 @@ const AvatarBuilderPage = () => {
             title="Corte de Cabelo"
             options={personalitySubBlocks.hairCut.options}
             selected={state.hairCut ? [state.hairCut] : []}
-            onSelect={(id) => updateField('hairCut', id)}
+            onSelect={(id) => toggleSingle('hairCut', id)}
             multi={false}
           />
           <SubBlockSection
