@@ -43,7 +43,7 @@ Regras obrigatórias:
 - Conecte as falas para ter continuidade narrativa
 
 ${startFrameBase64 ? '\nIMPORTANTE: Uma foto do start frame foi anexada. Analise a imagem com atenção e use o cenário, objetos, iluminação, posição da pessoa e todos os detalhes visuais como base para gerar o setup.scene, action e o contexto de TODAS as cenas.' : ''}
-{
+Retorne APENAS um JSON válido no formato:
   "scenes": [
     {
       "numero": 1,
