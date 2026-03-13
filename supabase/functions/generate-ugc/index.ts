@@ -57,7 +57,7 @@ Retorne APENAS um JSON válido no formato:
         "duration_seconds": 8
       },
       "action": {
-        "subject": "Criadora",
+        "subject": "${generoLabel}",
         "movement": "ação específica e detalhada"
       },
       "audio": {
