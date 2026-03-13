@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { produto, beneficio, tom, numCenas, sotaque, startFrameBase64 } = await req.json();
+    const { produto, beneficio, tom, numCenas, sotaque, genero, startFrameBase64 } = await req.json();
 
     if (!produto || !beneficio || !tom || !numCenas) {
       return new Response(JSON.stringify({ error: 'Campos obrigatórios: produto, beneficio, tom, numCenas' }), {
@@ -22,7 +22,8 @@ serve(async (req) => {
     }
 
     const sotaqueText = sotaque && sotaque !== 'neutro' ? `, com sotaque ${sotaque}` : '';
-
+    const generoLabel = genero === 'masculino' ? 'Criador' : 'Criadora';
+    const generoVoz = genero === 'masculino' ? 'masculina' : 'feminina';
     const systemPrompt = `Você é um roteirista especialista em conteúdo UGC (User Generated Content) para redes sociais.
 
 Gere exatamente ${numCenas} cenas para um vídeo UGC sobre o produto "${produto}".
@@ -36,13 +37,13 @@ Regras obrigatórias:
 - As cenas intermediárias devem ser type "development"
 - A última cena deve ser type "cta" — fechar com chamada para ação natural
 - Tom de voz: ${tom}
-- A voz deve refletir o sotaque: ${sotaque || 'neutro'}
+- A voz deve refletir o sotaque: ${sotaque || 'neutro'} e ser ${generoVoz}
+- O personagem é ${genero === 'masculino' ? 'um homem' : 'uma mulher'}
 - Linguagem natural, humana, sem clichês, própria para vídeo curto
 - Conecte as falas para ter continuidade narrativa
-${startFrameBase64 ? '\nIMPORTANTE: Uma foto do start frame foi anexada. Analise a imagem com atenção e use o cenário, objetos, iluminação, posição da pessoa e todos os detalhes visuais como base para gerar o setup.scene, action e o contexto de TODAS as cenas.' : ''}
 
+${startFrameBase64 ? '\nIMPORTANTE: Uma foto do start frame foi anexada. Analise a imagem com atenção e use o cenário, objetos, iluminação, posição da pessoa e todos os detalhes visuais como base para gerar o setup.scene, action e o contexto de TODAS as cenas.' : ''}
 Retorne APENAS um JSON válido no formato:
-{
   "scenes": [
     {
       "numero": 1,
@@ -56,12 +57,12 @@ Retorne APENAS um JSON válido no formato:
         "duration_seconds": 8
       },
       "action": {
-        "subject": "Criadora",
+        "subject": "${generoLabel}",
         "movement": "ação específica e detalhada"
       },
       "audio": {
         "dialogue": "texto da fala entre 120-160 chars",
-        "voice": "descrição da voz com sotaque e tom emocional"
+        "voice": "descrição da voz ${generoVoz} com sotaque e tom emocional"
       }
     }
   ]

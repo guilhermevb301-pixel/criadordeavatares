@@ -68,6 +68,7 @@ const ScriptConfigPanel = ({ isLoading, onGenerate }: ScriptConfigPanelProps) =>
   const [isAdvanced, setIsAdvanced] = useState(false);
   const [activePreset, setActivePreset] = useState<string | null>(null);
   const [sotaque, setSotaque] = useState('neutro');
+  const [genero, setGenero] = useState<'masculino' | 'feminino'>('feminino');
   const [startFrameBase64, setStartFrameBase64] = useState<string | undefined>();
   const [startFramePreview, setStartFramePreview] = useState<string | null>(null);
 
@@ -82,7 +83,7 @@ const ScriptConfigPanel = ({ isLoading, onGenerate }: ScriptConfigPanelProps) =>
   const canGenerate = tema && objetivo && publicoAlvo && estiloFala && personalidade && plataforma;
 
   const getParams = (): ScriptParams => {
-    const params: ScriptParams = { tema, objetivo, publicoAlvo, estiloFala, personalidade, plataforma, cta, numFalas, sotaque, startFrameBase64 };
+    const params: ScriptParams = { tema, objetivo, publicoAlvo, estiloFala, personalidade, plataforma, cta, numFalas, sotaque, genero, startFrameBase64 };
     if (isAdvanced) {
       params.cloneProfile = { comoFala, palavrasUsa, palavrasEvita, nivelEnergia, arquetipo, tomEmocional };
     }
@@ -140,6 +141,17 @@ const ScriptConfigPanel = ({ isLoading, onGenerate }: ScriptConfigPanelProps) =>
           <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">🧠 Personalidade do clone *</Label>
             <Input value={personalidade} onChange={e => setPersonalidade(e.target.value)} placeholder="Ex: Especialista confiante e acessível" className="bg-secondary/30 border-border" />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">👤 Gênero do Avatar *</Label>
+            <Select value={genero} onValueChange={v => setGenero(v as 'masculino' | 'feminino')}>
+              <SelectTrigger className="bg-secondary/30 border-border"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="feminino">👩 Feminino</SelectItem>
+                <SelectItem value="masculino">👨 Masculino</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-2 gap-3">

@@ -55,6 +55,7 @@ export interface ScriptParams {
   numFalas: number;
   cloneProfile?: CloneProfile;
   sotaque?: string;
+  genero?: 'masculino' | 'feminino';
   startFrameBase64?: string;
 }
 

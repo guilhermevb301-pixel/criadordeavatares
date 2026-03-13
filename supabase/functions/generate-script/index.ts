@@ -17,7 +17,7 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { tema, objetivo, publicoAlvo, estiloFala, personalidade, plataforma, cta, numFalas, cloneProfile, action, falaOriginal, falasOriginais, funcaoAlvo, sotaque, startFrameBase64 } = body;
+    const { tema, objetivo, publicoAlvo, estiloFala, personalidade, plataforma, cta, numFalas, cloneProfile, action, falaOriginal, falasOriginais, funcaoAlvo, sotaque, genero, startFrameBase64 } = body;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
@@ -110,7 +110,7 @@ Retorne APENAS JSON válido no formato estruturado:
       else if (action === "mais-natural") instruction = "Reescreva TODO o roteiro de forma mais natural, coloquial e humana.";
       else if (action === "mais-agressiva") instruction = "Reescreva TODO o roteiro de forma mais agressiva, urgente e persuasiva.";
 
-      const sysPrompt = buildMainSystemPrompt(nFalas, funcoes, cloneCtx, sotaque, startFrameText, instruction);
+      const sysPrompt = buildMainSystemPrompt(nFalas, funcoes, cloneCtx, sotaque, startFrameText, instruction, genero);
       const resp = await callAI(LOVABLE_API_KEY, [
         { role: "system", content: sysPrompt },
         { role: "user", content: buildUserPrompt(tema, objetivo, publicoAlvo, estiloFala, personalidade, plataforma, cta, nFalas, sotaque, `\nRoteiro original:\n${falasOriginais.join("\n")}`) },
@@ -119,7 +119,7 @@ Retorne APENAS JSON válido no formato estruturado:
     }
 
     // Default: generate new script
-    const systemPrompt = buildMainSystemPrompt(nFalas, funcoes, cloneCtx, sotaque, startFrameText);
+    const systemPrompt = buildMainSystemPrompt(nFalas, funcoes, cloneCtx, sotaque, startFrameText, undefined, genero);
     const userPrompt = buildUserPrompt(tema, objetivo, publicoAlvo, estiloFala, personalidade, plataforma, cta, nFalas, sotaque);
 
     // Build multimodal user message if image provided
@@ -139,8 +139,10 @@ Retorne APENAS JSON válido no formato estruturado:
   }
 });
 
-function buildMainSystemPrompt(nFalas: number, funcoes: string[], cloneCtx: string, sotaque?: string, startFrameText?: string, extraInstruction?: string): string {
+function buildMainSystemPrompt(nFalas: number, funcoes: string[], cloneCtx: string, sotaque?: string, startFrameText?: string, extraInstruction?: string, genero?: string): string {
   const sotaqueText = sotaque && sotaque !== 'neutro' ? sotaque : 'neutro';
+  const generoLabel = genero === 'masculino' ? 'Criador' : 'Criadora';
+  const generoVoz = genero === 'masculino' ? 'masculina' : 'feminina';
   return `Você é um roteirista brasileiro de elite, especializado em vídeos curtos para clones de IA.
 Seu trabalho é criar falas que soem EXTREMAMENTE humanas, naturais, performáveis.
 
@@ -156,6 +158,7 @@ REGRAS OBRIGATÓRIAS:
 - A última fala DEVE fechar com impacto ou CTA forte
 - Varie o ritmo: frases curtas + médias para manter dinamismo
 - Use linguagem do dia a dia brasileiro, com personalidade
+- O personagem é ${genero === 'masculino' ? 'um homem' : 'uma mulher'}
 - O sotaque do personagem é: ${sotaqueText}
 ${startFrameText || ""}
 ${cloneCtx}
@@ -175,12 +178,12 @@ Retorne APENAS um JSON válido neste formato exato, sem markdown:
         "duration_seconds": 8
       },
       "action": {
-        "subject": "Criador(a)",
+        "subject": "${generoLabel}",
         "movement": "ação específica e detalhada"
       },
       "audio": {
         "dialogue": "texto da fala entre 80-140 chars",
-        "voice": "descrição da voz com sotaque ${sotaqueText} e tom emocional"
+        "voice": "descrição da voz ${generoVoz} com sotaque ${sotaqueText} e tom emocional"
       }
     }
   ]

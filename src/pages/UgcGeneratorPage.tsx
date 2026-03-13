@@ -54,6 +54,7 @@ const UgcGeneratorPage = () => {
     tom: 'casual',
     numCenas: 4,
     sotaque: 'neutro',
+    genero: 'feminino',
   });
   const [startFramePreview, setStartFramePreview] = useState<string | null>(null);
 
@@ -117,6 +118,16 @@ const UgcGeneratorPage = () => {
               value={form.beneficio}
               onChange={e => updateField('beneficio', e.target.value)}
             />
+          </div>
+          <div className="space-y-2">
+            <Label>👤 Gênero do Avatar</Label>
+            <Select value={form.genero} onValueChange={v => updateField('genero', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="feminino">👩 Feminino</SelectItem>
+                <SelectItem value="masculino">👨 Masculino</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label>Tom de Voz</Label>

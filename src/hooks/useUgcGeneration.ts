@@ -35,6 +35,7 @@ export interface UgcParams {
   tom: string;
   numCenas: number;
   sotaque: string;
+  genero: 'masculino' | 'feminino';
   startFrameBase64?: string;
 }
 
