@@ -54,6 +54,7 @@ const UgcGeneratorPage = () => {
     tom: 'casual',
     numCenas: 4,
     sotaque: 'neutro',
+    genero: 'feminino',
   });
   const [startFramePreview, setStartFramePreview] = useState<string | null>(null);
 
