@@ -151,7 +151,10 @@ export function generatePrompt(state: AvatarState): string {
   const expr = findOption(blocks.find(b => b.id === 'expression')?.options || [], state.expression);
   const exprCustom = state.customExpression?.trim();
   const exprParts = [expr ? `expression is ${expr.replace(/^with a /i, '').replace(/expression$/i, '').trim()}` : '', exprCustom].filter(Boolean);
-  if (exprParts.length > 0) sections.push(`${exprParts.join(', ')}, maintaining direct eye contact with the camera`);
+  if (exprParts.length > 0) {
+    const eyeContact = expr ? ', maintaining direct eye contact with the camera' : '';
+    sections.push(`${exprParts.join(', ')}${eyeContact}`);
+  }
 
   // 7. Pose
   const pose = findOption(blocks.find(b => b.id === 'pose')?.options || [], state.pose);
