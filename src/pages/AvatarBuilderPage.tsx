@@ -341,7 +341,7 @@ const AvatarBuilderPage = () => {
             title="Etnia / Tom de Pele"
             options={appearanceSubBlocks.skinTone.options}
             selected={state.skinTone ? [state.skinTone] : []}
-            onSelect={(id) => updateField('skinTone', id)}
+            onSelect={(id) => toggleSingle('skinTone', id)}
             multi={false}
             customKey="customSkinTone"
             customValue={state.customSkinTone}
