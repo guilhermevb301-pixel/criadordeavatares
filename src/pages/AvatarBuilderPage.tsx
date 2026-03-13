@@ -684,7 +684,7 @@ const AvatarBuilderPage = () => {
                               <OptionGrid
                                 options={block.options || []}
                                 selected={state.environment ? [state.environment] : []}
-                                onSelect={(id) => updateField('environment', id)}
+                                onSelect={(id) => toggleSingle('environment', id)}
                                 multi={false}
                               />
                               <Input
