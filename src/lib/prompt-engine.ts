@@ -202,12 +202,12 @@ export function generatePrompt(state: AvatarState): string {
 
   // 12. Photo style / camera look (only for realistic/watercolor)
   if (isRealistic || style === 'watercolor') {
-    const photoStyle = findOption(blocks.find(b => b.id === 'photoStyle')?.options || [], state.photoStyle);
+    const photoStyle = state.photoStyle ? findOption(blocks.find(b => b.id === 'photoStyle')?.options || [], state.photoStyle) : '';
     const photoCustom = state.customPhotoStyle?.trim();
     const photoParts = [photoStyle, photoCustom].filter(Boolean);
     if (photoParts.length > 0) {
       const photoDesc = photoParts.join(', ');
-      if (isRealistic) {
+      if (isRealistic && photoStyle) {
         sections.push(`camera look is premium ${photoDesc}, razor-sharp focus on the eyes, natural color balance, no HDR, no over-sharpening, no stylization`);
       } else {
         sections.push(`style reference: ${photoDesc}`);
